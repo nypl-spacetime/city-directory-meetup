@@ -1,32 +1,141 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Title!</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" href="css/reveal.css">
-    <link rel="stylesheet" href="css/highlight-github-gist.css">
-    <link rel="stylesheet" href="css/theme.css" id="theme">
-    <link rel="stylesheet" href="css/style.css">
-  </head>
-  <body>
-    <!-- Resolution: 1280 x 800 -->
 
-    <div class="reveal">
-      <div class="slides">
+<head>
+  <meta charset="utf-8">
+  <title>Title!</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/highlight-github-gist.css">
+  <link rel="stylesheet" href="css/theme.css" id="theme">
+  <link rel="stylesheet" href="css/style.css">
+</head>
 
-        <!-- For example slides, see https://github.com/bertspaan/nacis-2017/blob/master/index.html -->
+<body>
+  <!-- Resolution: 1280 x 800 -->
 
-      </div>
+  <div class="reveal">
+
+
+    <!-- Begin SGB slides: -->
+
+    <div class="slides">
+      <section class="block-text" data-background="../city-directory-meetup/images/119.56783783.6ba50f00-5ce4-0134-32e3-00505686a51c.jpeg">
+        <div>
+          <span class="block"><strong>Field labeling</strong></span>
+        </div>
+        <div>
+          <span class="block">Stephen Balogh, New York University</span>
+        </div>
+        <span class="caption">
+						Extracting labeled fields from directory entries
+					</span>
+      </section>
+
+      <section data-background="#e15718">
+        <ul>
+          <b>Motivation</b>
+          <li class="fragment">Be able to recognize different types of data within an entry</li>
+          <li class="fragment">Extract structured knowledge about each individual...</li>
+          </ol>
+      </section>
+
+      <section data-background="#000">
+        <img class="stretch" src="../city-directory-meetup/images/label-extraction/animation-0.jpg" />
+        <span class="caption">
+						A sample directory sheet...
+					</span>
+      </section>
+
+      <section data-background="#000">
+        <img class="stretch" src="../city-directory-meetup/images/label-extraction/animation-1.jpg">
+        <span class="caption">
+            Find names of <b>individuals</b> and <b>companies</b>
+          </span>
+      </section>
+
+      <section data-background="#000">
+        <img class="stretch" src="../city-directory-meetup/images/label-extraction/animation-2.jpg">
+        <span class="caption">
+            Find <b>occupations</b>
+          </span>
+      </section>
+
+      <section data-background="#000">
+        <img class="stretch" src="../city-directory-meetup/images/label-extraction/animation-3.jpg">
+        <span class="caption">
+            Find <b>predicates</b> of space
+          </span>
+      </section>
+
+      <section data-background="#000">
+        <img class="stretch" src="../city-directory-meetup/images/label-extraction/animation-4.jpg">
+        <span class="caption">
+            Find <b>addresses</b> and <b>locations</b>
+          </span>
+      </section>
+
+      <section>
+        <ol>
+
+          <li><b>name</b></li> => <em>"George Binkenburg"</em>
+
+          <div class="fragment">
+            <li><b>occupation</b></li> => <em>"pianomkr."</em>
+          </div>
+          <div class="fragment">
+            <li><b>location predicate</b></li> => <em>"h."</em> (home)
+          </div>
+          <div class="fragment">
+            <li><b>address</b></li> => <em>"924 Third av."</em>
+          </div>
+        </ol>
+        <span class="caption">
+            Four main types of labels
+          </span>
+      </section>
+
+      <section>
+        <b>Can we do this using regular expressions?</b>
+        <span class="caption">
+            First intuition: Regular expressions
+          </span>
+      </section>
+
+      <section>
+
+        <ol>
+          <b>Not really!</b>
+          <li>OCR transcriptions are never perfect
+            <ul>
+              <li>There is a substantial amount of disorder in the parsed text</li>
+              <li>Accordingly, it is very difficult to consistently <b>tokenize</b> the entries</li>
+            </ul>
+          </li>
+
+        </ol>
+        <span class="caption">
+            First intuition: Regular expressions
+          </span>
+      </section>
+
+
+      <!-- End SGB slides. -->
+
+
+      <!-- For example slides, see https://github.com/bertspaan/nacis-2017/blob/master/index.html -->
+
     </div>
-    <div id="caption-container">
-      <div id="caption">
-      </div>
+  </div>
+  <div id="caption-container">
+    <div id="caption">
     </div>
-    <script src="js/head.load.min.js"></script>
-    <script src="js/reveal.js"></script>
-    <script src="js/script.js"></script>
-  </body>
+  </div>
+  <script src="js/head.load.min.js"></script>
+  <script src="js/reveal.js"></script>
+  <script src="js/script.js"></script>
+</body>
+
 </html>
