@@ -238,9 +238,158 @@
       <section>
         <ul>
           <li>First we create training examples, at the same individual-token level as before:
-        </ol>
+        </ul>
+        <img class="stretch" src="../city-directory-meetup/images/training-ex-2.png" />
+        <ul>
+          <li>Each token is labeled in terms of what tag it is part of
+        </ul>
+
         <span class="caption">
             Third intuition: Conditional random fields (CRF)
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>Next, we define <b>features</b>, similar to the heuristic functions we used earlier
+            <li>Features are usually boolean (true/false) attributes that are computed for each token
+              <ul><li>In CRF, features describe not only the "present" token, but can also look at adjacent tokens</ul>
+        </ul>
+        <span class="caption">
+            Third intuition: Conditional random fields (CRF)
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>Assume that the input we are trying to classify is:
+            <ul>
+              <li><b style="color:#e15718">Bush Chauncey, commissioner, 157 B'way, h. Rathbun's hotel</b>
+              </ul>
+        </ul>
+        <span class="caption">
+            Third intuition: Conditional random fields (CRF)
+          </span>
+      </section>
+
+      <section>
+        <ul>
+              <li>First we'll go through the input, one token at a time, and featurize those tokens
+        </ul>
+        <span class="caption">
+            Third intuition: Conditional random fields (CRF)
+          </span>
+      </section>
+
+      <section>
+        <ul>
+              <li><b style="color:#e15718"><b style="background-color:yellow">Bush</b> Chauncey, commissioner, 157 B'way, h. Rathbun's hotel</b>
+                <ul style="font-size:75%">
+                  <li>current_word-is_start_of_sentence: <b style="color:green">TRUE</b>
+                  <li>current_word-is_end_of_sentence: <b style="color:red">FALSE</b>
+                  <li>current_word-contains_a_number: <b style="color:red">FALSE</b>
+                  <li>current_word-character_capitalized: <b style="color:green">TRUE</b>
+                    <li>...
+                      <li>next_word-is_start_of_sentence: <b style="color:red">FALSE</b>
+                        <li>...
+                          <li>previous_word-is_start_of_sentence: <b style="color:purple">NULL</b>
+                            <li>...
+                  </ul>
+
+        </ul>
+        <span class="caption">
+            Third intuition: Conditional random fields (CRF)
+          </span>
+      </section>
+
+      <section>
+        <ul>
+              <li><b style="color:#e15718">Bush <b style="background-color:yellow">Chauncey</b>, commissioner, 157 B'way, h. Rathbun's hotel</b>
+                <ul style="font-size:75%">
+                  <li>current_word-is_start_of_sentence: <b style="color:red">FALSE</b>
+                  <li>current_word-is_end_of_sentence: <b style="color:red">FALSE</b>
+                  <li>current_word-contains_a_number: <b style="color:red">FALSE</b>
+                  <li>current_word-character_capitalized: <b style="color:green">TRUE</b>
+                    <li>...
+                      <li>next_word-is_start_of_sentence: <b style="color:red">FALSE</b>
+                        <li>...
+                          <li>previous_word-is_start_of_sentence: <b style="color:green">TRUE</b>
+                            <li>...
+                  </ul>
+
+        </ul>
+        <span class="caption">
+            Third intuition: Conditional random fields (CRF)
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>Features can represent many different aspects of the input
+            <ul>
+              <li>Word shape
+                <li>Suffixes and prefixes
+                  <li>Types of characters in the input
+                    <li>Whether or not the input is a known entity
+              </ul>
+        </ul>
+        <span class="caption">
+            CRF: Feature engineering
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>Conditional random fields learns which sets of feature maximize the ability to correctly predict the label
+            <ul>
+              <li>We train a CRF model to provide the sequence of labels that maximizes: <br><b style="font-size:75%;background-color:#ff8787">P( word-label | word-features) * P(label-sequence)</b>
+              </ul>
+              <li>The training data is our correctly-labeled input examples; this is what we want the model to learn from
+        </ul>
+        <span class="caption">
+            CRF: learning
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>We used Python's <b>scikit-learn</b> package
+            <ul>
+              <li>They recently added a CRF implementation
+                <li>The API is in Python, so it's easy to write your own feature-extractors
+              </ul>
+        </ul>
+        <span class="caption">
+            CRF: implementation
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li><b>What does CRF allow us to do?</b>
+            <ul>
+              <li>We just have to create features that are sensitive to differences of tokens
+                <ul><li>But, we don't actually have to determine if those differences are useful or not!</ul>
+                <li>CRF infers from training examples, by perceiving in terms of featurized-tokens, what the most important factors in predicting labels are
+              </ul>
+        </ul>
+        <span class="caption">
+            CRF: implementation
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li><b>How good is CRF?</b>
+            <ul>
+              <li>Super good. Really really good.
+                <ul><li>But we don't really have good stats to back that claim up.</ul>
+                  <li>Since the majority of our input is unlabeled, it's hard to evaluate against it.
+
+              </ul>
+        </ul>
+        <span class="caption">
+            CRF: accuracy
           </span>
       </section>
 
