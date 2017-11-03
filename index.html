@@ -107,19 +107,140 @@
       </section>
 
       <section>
-
         <ol>
-          <b>Not really!</b>
+          <b style="background-color:red">Not really!</b>
           <li>OCR transcriptions are never perfect
             <ul>
-              <li>There is a substantial amount of disorder in the parsed text</li>
-              <li>Accordingly, it is very difficult to consistently <b>tokenize</b> the entries</li>
+              <li>There are mistranscriptions in the parsed text</li>
+              <li>This makes it very difficult to consistently <b>tokenize</b> the entries</li>
             </ul>
           </li>
-
         </ol>
         <span class="caption">
             First intuition: Regular expressions
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>For instance, consider the (correctly) transcribed entry:<br><b style="color:#e15718">Binkenburg George, pianomkr. h. 924 Third av.</b>
+            <ul>
+              <li>From this, it seems reasonable to split the entry just based on "," and "." characters, and we'd be pretty close!</li>
+            </ul>
+          </li>
+          <li class="fragment"><b style="color:#e15718">Binkenburg George<b style="background-color:yellow">,</b> pianomkr<b style="background-color:yellow">.</b> h<b style="background-color:yellow">.</b> 924 Third av<b style="background-color:yellow">.</b></b>
+        </ol>
+        <span class="caption">
+            First intuition: Regular expressions
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>Unfortunately, we rarely see such clean parses!
+          <li class="fragment">Something like this is much more likely:<br><b style="color:#e15718">BInkenbu rg Geor ge pianomkr. h 924 Th1rd av</b>
+        </ol>
+        <span class="caption">
+            First intuition: Regular expressions
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>And not only can we not trust the transcriptions 100%...</li>
+          <li>We also can't predict the amount of elements in an entry without inspecting first!</li>
+          <li class="fragment"><b style="color:#e15718">Burtnett Daniel, pres. cit. f. ins. co. 67 Wall & 64 Bowery, h. 14 Perry</b>
+            <li class="fragment"><b style="color:#e15718">Burt Edwin C. boots & shoes, 43 Broadway, h. 327 Henry, Brooklyn</b>
+        </ol>
+        <span class="caption">
+            First intuition: Regular expressions
+          </span>
+      </section>
+
+      <section>
+        <b>Can we do this using regular expressions, plus a ton of conditional statements?</b>
+        <span class="caption">
+            Second intuition: A lot of conditionals!
+          </span>
+      </section>
+
+      <section>
+        <ol>
+          <b style="background-color:yellow">Sort of!</b>
+          <li>The approach is:
+            <ul>
+              <li>We can't assume any delimiter is correctly parsed, so first we just tokenize everything we can</li>
+              <ul>
+              <li class="fragment"><b style="color:#e15718">Bush Anna, widow of Henry J. r. 152 W. 13th</b>
+
+                <li class="fragment"><b>=> ["<b style="color:#e15718">Bush</b>", "<b style="color:#e15718">Anna</b>", "<b style="color:#e15718">,</b>", "<b style="color:#e15718">widow</b>", "<b style="color:#e15718">of</b>", "<b style="color:#e15718">Henry</b>", "<b style="color:#e15718">J</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">r</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">152</b>", "<b style="color:#e15718">W</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">13th</b>"]</b>
+                </ul>
+            </ul>
+          </li>
+        </ol>
+        <span class="caption">
+            Second intuition: A lot of conditionals!
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>Then, we go through the tokens one by one, and try to figure out what label they belong to
+            <li>We can use heuristic methods for classifying each token
+            <ul style="font-size:75%">
+              <li>Does it contain a number? If so, it's probably part of an <b>address</b>.
+              <li>Does it contain a known street name? If so, it's again part of an <b>address</b>.
+                <li>Is it a known occupation? If so, it must be an <b>occupation</b> name.
+              <li>...</li>
+            </ul>
+          </li>
+        </ul>
+        <span class="caption">
+            Second intuition: A lot of conditionals!
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>This turns out to be a <em>somewhat</em> promising approach, but it is very tedious to engineer...
+            <li>Our accuracy is contingent on both:
+              <ol>
+                <li>Thinking of all of the relevant heuristic methods
+                  <li>Interpreting and weighing the results of those heuristics correctly
+                  </ol>
+        </ul>
+        <span class="caption">
+            Second intuition: A lot of conditionals!
+          </span>
+      </section>
+
+      <section>
+        <b>Can algorithms from machine learning do this better?</b>
+        <span class="caption">
+            Third intuition: Conditional random fields (CRF)
+          </span>
+      </section>
+
+      <section>
+        <ol>
+          <b style="background-color:#1baf1b">YES! 100% YES!</b>
+          <li>We use a supervised-learning algorithm called "conditional random fields" (CRF)
+            <ul>
+              <li>Instead of trying to pre-empt what factors are important in labeling, and interpreting the results, we demonstrate by way of example and let CRF infer what is important
+              <ul>
+          </li>
+        </ol>
+        <span class="caption">
+            Third intuition: Conditional random fields (CRF)
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>First we create training examples, at the same individual-token level as before:
+        </ol>
+        <span class="caption">
+            Third intuition: Conditional random fields (CRF)
           </span>
       </section>
 
