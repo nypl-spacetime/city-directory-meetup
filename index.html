@@ -80,10 +80,11 @@
       </section>
 
       <section>
+        <b style="background-color:#f192a6">George Binkenburg</b>, <b style="background-color:#91c8f7">pianomkr.</b> <b style="background-color:#fffab2">h.</b> <b style="background-color:#73ce9f">924 Third av.</b>
         <ol>
-
-          <li><b>name</b></li> => <em>"George Binkenburg"</em>
-
+          <div class="fragment">
+            <li><b>name</b></li> => <em>"George Binkenburg"</em>
+          </div>
           <div class="fragment">
             <li><b>occupation</b></li> => <em>"pianomkr."</em>
           </div>
@@ -129,8 +130,8 @@
             </ul>
           </li>
           <li class="fragment"><b style="color:#e15718">Binkenburg George<b style="background-color:yellow">,</b> pianomkr<b style="background-color:yellow">.</b> h<b style="background-color:yellow">.</b> 924 Third av<b style="background-color:yellow">.</b></b>
-        </ol>
-        <span class="caption">
+            </ol>
+            <span class="caption">
             First intuition: Regular expressions
           </span>
       </section>
@@ -138,9 +139,9 @@
       <section>
         <ul>
           <li>Unfortunately, we rarely see such clean parses!
-          <li class="fragment">Something like this is much more likely:<br><b style="color:#e15718">BInkenbu rg Geor ge pianomkr. h 924 Th1rd av</b>
-        </ol>
-        <span class="caption">
+            <li class="fragment">Something like this is much more likely:<br><b style="color:#e15718">BInkenbu rg Geor ge pianomkr. h 924 Th1rd av</b>
+              </ol>
+              <span class="caption">
             First intuition: Regular expressions
           </span>
       </section>
@@ -151,14 +152,14 @@
           <li>We also can't predict the amount of elements in an entry without inspecting first!</li>
           <li class="fragment"><b style="color:#e15718">Burtnett Daniel, pres. cit. f. ins. co. 67 Wall & 64 Bowery, h. 14 Perry</b>
             <li class="fragment"><b style="color:#e15718">Burt Edwin C. boots & shoes, 43 Broadway, h. 327 Henry, Brooklyn</b>
-        </ol>
-        <span class="caption">
+              </ol>
+              <span class="caption">
             First intuition: Regular expressions
           </span>
       </section>
 
       <section>
-        <b>Can we do this using regular expressions, plus a ton of conditional statements?</b>
+        <b>Can we do this using regular expressions, <em>plus</em> a ton of conditional statements?</b>
         <span class="caption">
             Second intuition: A lot of conditionals!
           </span>
@@ -169,14 +170,16 @@
           <b style="background-color:yellow">Sort of!</b>
           <li>The approach is:
             <ul>
-              <li>We can't assume any delimiter is correctly parsed, so first we just tokenize everything we can</li>
+              <li>Since we can't assume that any delimiter is correctly parsed, we'll first just tokenize everything we can</li>
               <ul>
-              <li class="fragment"><b style="color:#e15718">Bush Anna, widow of Henry J. r. 152 W. 13th</b>
+                <li class="fragment"><b style="color:#e15718">Bush Anna, widow of Henry J. r. 152 W. 13th</b>
 
-                <li class="fragment"><b>=> ["<b style="color:#e15718">Bush</b>", "<b style="color:#e15718">Anna</b>", "<b style="color:#e15718">,</b>", "<b style="color:#e15718">widow</b>", "<b style="color:#e15718">of</b>", "<b style="color:#e15718">Henry</b>", "<b style="color:#e15718">J</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">r</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">152</b>", "<b style="color:#e15718">W</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">13th</b>"]</b>
-                </ul>
+                  <li class="fragment"><b>=> ["<b style="color:#e15718">Bush</b>", "<b style="color:#e15718">Anna</b>", "<b style="color:#e15718">,</b>", "<b style="color:#e15718">widow</b>", "<b style="color:#e15718">of</b>", "<b style="color:#e15718">Henry</b>", "<b style="color:#e15718">J</b>",
+                    "
+                    <b style="color:#e15718">.</b>", "<b style="color:#e15718">r</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">152</b>", "<b style="color:#e15718">W</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">13th</b>"]</b>
+              </ul>
             </ul>
-          </li>
+            </li>
         </ol>
         <span class="caption">
             Second intuition: A lot of conditionals!
@@ -187,13 +190,13 @@
         <ul>
           <li>Then, we go through the tokens one by one, and try to figure out what label they belong to
             <li>We can use heuristic methods for classifying each token
-            <ul style="font-size:75%">
-              <li>Does it contain a number? If so, it's probably part of an <b>address</b>.
-              <li>Does it contain a known street name? If so, it's again part of an <b>address</b>.
-                <li>Is it a known occupation? If so, it must be an <b>occupation</b> name.
-              <li>...</li>
-            </ul>
-          </li>
+              <ul style="font-size:75%">
+                <li class="fragment">Does it contain a number? If so, it's probably part of an <b style="background-color:#73ce9f">address</b>.
+                  <li class="fragment">Does it contain a known street name? If so, it's again part of an <b style="background-color:#73ce9f">address</b>.
+                    <li class="fragment">Is it a known occupation? If so, it must be an <b style="background-color:#91c8f7">occupation</b> name.
+                      <li class="fragment">...</li>
+              </ul>
+              </li>
         </ul>
         <span class="caption">
             Second intuition: A lot of conditionals!
@@ -202,12 +205,12 @@
 
       <section>
         <ul>
-          <li>This turns out to be a <em>somewhat</em> promising approach, but it is very tedious to engineer...
-            <li>Our accuracy is contingent on both:
+          <li>This turns out to be a somewhat promising approach, but it is very tedious to engineer...
+            <li>Our accuracy is contingent on our ability to correctly:
               <ol>
-                <li>Thinking of all of the relevant heuristic methods
-                  <li>Interpreting and weighing the results of those heuristics correctly
-                  </ol>
+                <li>Think of all of the relevant heuristic methods
+                  <li>Interpret and weigh the results of the heuristics correctly
+              </ol>
         </ul>
         <span class="caption">
             Second intuition: A lot of conditionals!
@@ -226,9 +229,9 @@
           <b style="background-color:#1baf1b">YES! 100% YES!</b>
           <li>We use a supervised-learning algorithm called "conditional random fields" (CRF)
             <ul>
-              <li>Instead of trying to pre-empt what factors are important in labeling, and interpreting the results, we demonstrate by way of example and let CRF infer what is important
-              <ul>
-          </li>
+              <li class="fragment">Instead of trying to pre-empt what factors are important in labeling, and then interpret the results, we demonstrate by way of labeled examples, and let CRF infer what is important
+                <ul>
+              </li>
         </ol>
         <span class="caption">
             Third intuition: Conditional random fields (CRF)
@@ -243,20 +246,103 @@
         <ul>
           <li>Each token is labeled in terms of what tag it is part of
         </ul>
-
         <span class="caption">
-            Third intuition: Conditional random fields (CRF)
+            CRF training data
+          </span>
+      </section>
+
+      <section>
+        <table style="font-size:75%">
+          <tr>
+            <th>Label</th>
+            <th>Abbreviation</th>
+            <th>Example</th>
+          </tr>
+          <tr>
+            <td>START</td>
+            <td><b>START</b></td>
+            <td><em>(beginning of entry)</em></td>
+          </tr>
+          <tr>
+            <td>END</td>
+            <td><b>END</b></td>
+            <td><em>(end of entry)</em></td>
+          </tr>
+          <tr>
+            <td>Delimiter</td>
+            <td><b>D</b></td>
+            <td>"," , "."</td>
+          </tr>
+          <tr>
+            <td>Name component</td>
+            <td><b>NC</b></td>
+            <td>"Alice"</td>
+          </tr>
+          <tr>
+            <td>Occupation component</td>
+            <td><b>OC</b></td>
+            <td>"laborer"</td>
+          </tr>
+          <tr>
+            <td>Position attribute</td>
+            <td><b>PA</b></td>
+            <td>"h."</td>
+          </tr>
+          <tr>
+            <td>Address component</td>
+            <td><b>AC</b></td>
+            <td>"718", "Washington"</td>
+          </tr>
+
+        </table>
+        <span class="caption">
+            CRF labels
           </span>
       </section>
 
       <section>
         <ul>
-          <li>Next, we define <b>features</b>, similar to the heuristic functions we used earlier
-            <li>Features are usually boolean (true/false) attributes that are computed for each token
-              <ul><li>In CRF, features describe not only the "present" token, but can also look at adjacent tokens</ul>
+          <li>This sequence of labels accompanying the tokens is used for training, and also is the form that CRF predictions will take
+            <li class="fragment">Given a sequence of labels, we can then easily parse the record into discrete elements
+              <ul>
+                <li class="fragment"><b>START NC NC D OC OC D PA AC AC PA AC AC END</b>
+                  <li class="fragment"><b><del>START</del></b> <b style="background-color:#f192a6">NC NC</b> <del>D</del> <b style="background-color:#91c8f7">OC OC</b> <del>D</del> <b style="background-color:#fffab2">PA</b> <b style="background-color:#73ce9f">AC AC</b> <b style="background-color:#fffab2">PA</b> <b style="background-color:#73ce9f">AC AC</b> <b><del>END</del></b></ul>
         </ul>
         <span class="caption">
-            Third intuition: Conditional random fields (CRF)
+            CRF label decoding
+          </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>Conditional random fields uses a discriminative classifier to produce the sequence of labels which maximizes: <br><b style="font-size:100%;background-color:#ff8787">P( word-label | word-features)</b></li>
+          <li>Features encode information relevant to a word's label in a way that is sensitive to the word itself, as well as that word's location in a sequence
+        </ul>
+        <span class="caption">
+            CRF parameter learning
+          </span>
+      </section>
+
+      <section>
+        <ul>
+            <li>Features are usually boolean (true/false) attributes that are computed for each token
+              <ul>
+                <li>In CRF, features describe not only the "present" token, but can also look at adjacent tokens</ul>
+                  <li>We have to create features similar to the heuristic functions we used earlier
+        </ul>
+        <span class="caption">
+            CRF feature engineering
+          </span>
+      </section>
+
+      <section>
+        <ul>
+            <li>During inference time, the algorithm will proceed through the examples, and find the <b>feature weights</b> that maximize the probability of getting the correct label
+                <li>This process is done iteratively, often using a training algorithm called <b>stochastic gradient descent</b>
+                  <ul><li style="font-size:75%">(... but luckily for us, we use a library that abstracts this away!)</li>
+        </ul>
+        <span class="caption">
+            CRF inference
           </span>
       </section>
 
@@ -265,102 +351,90 @@
           <li>Assume that the input we are trying to classify is:
             <ul>
               <li><b style="color:#e15718">Bush Chauncey, commissioner, 157 B'way, h. Rathbun's hotel</b>
-              </ul>
+            </ul>
         </ul>
         <span class="caption">
-            Third intuition: Conditional random fields (CRF)
+            CRF features
           </span>
       </section>
 
       <section>
         <ul>
-              <li>First we'll go through the input, one token at a time, and featurize those tokens
+          <li>First we'll go through the input, one token at a time, and featurize those tokens
         </ul>
         <span class="caption">
-            Third intuition: Conditional random fields (CRF)
+            CRF features
           </span>
       </section>
 
       <section>
         <ul>
-              <li><b style="color:#e15718"><b style="background-color:yellow">Bush</b> Chauncey, commissioner, 157 B'way, h. Rathbun's hotel</b>
-                <ul style="font-size:75%">
-                  <li>current_word-is_start_of_sentence: <b style="color:green">TRUE</b>
-                  <li>current_word-is_end_of_sentence: <b style="color:red">FALSE</b>
+          <li><b style="color:#e15718"><b style="background-color:yellow">Bush</b> Chauncey, commissioner, 157 B'way, h. Rathbun's hotel</b>
+            <ul style="font-size:75%">
+              <li>current_word-is_start_of_sentence: <b style="color:green">TRUE</b>
+                <li>current_word-is_end_of_sentence: <b style="color:red">FALSE</b>
                   <li>current_word-contains_a_number: <b style="color:red">FALSE</b>
-                  <li>current_word-character_capitalized: <b style="color:green">TRUE</b>
-                    <li>...
-                      <li>next_word-is_start_of_sentence: <b style="color:red">FALSE</b>
-                        <li>...
-                          <li>previous_word-is_start_of_sentence: <b style="color:purple">NULL</b>
-                            <li>...
-                  </ul>
+                    <li>current_word-character_capitalized: <b style="color:green">TRUE</b>
+                      <li>...
+                        <li>next_word-is_start_of_sentence: <b style="color:red">FALSE</b>
+                          <li>...
+                            <li>previous_word-is_start_of_sentence: <b style="color:purple">NULL</b>
+                              <li>...
+            </ul>
 
         </ul>
         <span class="caption">
-            Third intuition: Conditional random fields (CRF)
+            CRF feature example, iteration 1
           </span>
       </section>
 
       <section>
         <ul>
-              <li><b style="color:#e15718">Bush <b style="background-color:yellow">Chauncey</b>, commissioner, 157 B'way, h. Rathbun's hotel</b>
-                <ul style="font-size:75%">
-                  <li>current_word-is_start_of_sentence: <b style="color:red">FALSE</b>
-                  <li>current_word-is_end_of_sentence: <b style="color:red">FALSE</b>
+          <li><b style="color:#e15718">Bush <b style="background-color:yellow">Chauncey</b>, commissioner, 157 B'way, h. Rathbun's hotel</b>
+            <ul style="font-size:75%">
+              <li>current_word-is_start_of_sentence: <b style="color:red">FALSE</b>
+                <li>current_word-is_end_of_sentence: <b style="color:red">FALSE</b>
                   <li>current_word-contains_a_number: <b style="color:red">FALSE</b>
-                  <li>current_word-character_capitalized: <b style="color:green">TRUE</b>
-                    <li>...
-                      <li>next_word-is_start_of_sentence: <b style="color:red">FALSE</b>
-                        <li>...
-                          <li>previous_word-is_start_of_sentence: <b style="color:green">TRUE</b>
-                            <li>...
-                  </ul>
+                    <li>current_word-character_capitalized: <b style="color:green">TRUE</b>
+                      <li>...
+                        <li>next_word-is_start_of_sentence: <b style="color:red">FALSE</b>
+                          <li>...
+                            <li>previous_word-is_start_of_sentence: <b style="color:green">TRUE</b>
+                              <li>...
+            </ul>
 
         </ul>
         <span class="caption">
-            Third intuition: Conditional random fields (CRF)
+            CRF feature example, iteration 2
           </span>
       </section>
 
       <section>
         <ul>
-          <li>Features can represent many different aspects of the input
+          <li>We have a lot of freedom in designing what features to extract
+          <li>Features can represent many aspects of the input
             <ul>
-              <li>Word shape
-                <li>Suffixes and prefixes
-                  <li>Types of characters in the input
-                    <li>Whether or not the input is a known entity
-              </ul>
+              <li class="fragment">Word shape
+                <li class="fragment">Suffixes and prefixes
+                  <li class="fragment">Types of characters in the input
+                    <li class="fragment">Whether or not the input is a known entity
+            </ul>
         </ul>
         <span class="caption">
-            CRF: Feature engineering
+            CRF feature engineering
           </span>
       </section>
 
       <section>
         <ul>
-          <li>Conditional random fields learns which sets of feature maximize the ability to correctly predict the label
+          <li>We used Python's <b>sklearn-crfsuite</b> package
             <ul>
-              <li>We train a CRF model to provide the sequence of labels that maximizes: <br><b style="font-size:75%;background-color:#ff8787">P( word-label | word-features) * P(label-sequence)</b>
-              </ul>
-              <li>The training data is our correctly-labeled input examples; this is what we want the model to learn from
+              <li>It conforms to the popular <b>scikit-learn</b> package API
+                <li>It's in Python, so it's straightforward to write custom feature extractors
+            </ul>
         </ul>
         <span class="caption">
-            CRF: learning
-          </span>
-      </section>
-
-      <section>
-        <ul>
-          <li>We used Python's <b>scikit-learn</b> package
-            <ul>
-              <li>They recently added a CRF implementation
-                <li>The API is in Python, so it's easy to write your own feature-extractors
-              </ul>
-        </ul>
-        <span class="caption">
-            CRF: implementation
+            CRF implementation
           </span>
       </section>
 
@@ -369,12 +443,13 @@
           <li><b>What does CRF allow us to do?</b>
             <ul>
               <li>We just have to create features that are sensitive to differences of tokens
-                <ul><li>But, we don't actually have to determine if those differences are useful or not!</ul>
+                <ul>
+                  <li>But, we don't actually have to determine if those differences are useful or not!</ul>
                 <li>CRF infers from training examples, by perceiving in terms of featurized-tokens, what the most important factors in predicting labels are
-              </ul>
+            </ul>
         </ul>
         <span class="caption">
-            CRF: implementation
+            CRF implementation
           </span>
       </section>
 
@@ -382,11 +457,12 @@
         <ul>
           <li><b>How good is CRF?</b>
             <ul>
-              <li>Super good. Really really good.
-                <ul><li>But we don't really have good stats to back that claim up.</ul>
-                  <li>Since the majority of our input is unlabeled, it's hard to evaluate against it.
+              <li>Super good! Really, really good.
+                <ul>
+                  <li>But we don't really have many stats to back that claim up.</ul>
+                <li>Since the majority of our input is unlabeled, it's hard to evaluate against it.
 
-              </ul>
+            </ul>
         </ul>
         <span class="caption">
             CRF: accuracy
