@@ -19,6 +19,83 @@
 
         <!-- For example slides, see https://github.com/bertspaan/nacis-2017/blob/master/index.html -->
 
+        <section class="block-text" data-background="---->background.jpg">
+          <span class="caption">
+            Extracting a Million-Record Dataset from Historical NYC City Directories
+          </span>
+        </section>
+
+        <!--
+        ==========================================================================================
+            Schedule:
+        ==========================================================================================
+        -->
+
+        <!--
+
+        1. Nick:
+
+          - Intro to NewYorkScapes and brief background to NYPL-Data Services working on directories; introduction of self, Stephen, and Bert
+          - Bird's eye overview of project challenges (i.e. accurately moving directory contents to working data, preserving print directories metadata, sorting ads from entries, lack of complete known personal names dictionaries, lack of complete known-occupation dictionaries, etc. for correction)
+          - OCR: our move from Ocropy to Tess3 to Tess4, current state of OCR quality assessment
+
+        2. Bert
+          - Overview of indent problem, advertisement/entry sorting (i.e. explain the indent script's job)
+
+        3. Stephen
+
+          - Overview of problems of field detection of messy/error data
+          - Our move from known-word field detection to full-fledged CRF
+
+        4. Bert
+
+          - Address standardization challenges
+          - NDJSON ingest to Space/Time, Space/Time data model
+          - Reveal of Space/Time directory data in website
+
+        -->
+
+        <!--
+        ==========================================================================================
+            Nick:
+        ==========================================================================================
+        -->
+
+        <!--
+        ==========================================================================================
+            Bert (1/2):
+        ==========================================================================================
+        -->
+
+        <!-- Tesseract output: hOCR + example, in browser + in text -->
+        <!-- show bboxes! -->
+        <!-- histogram of bboxes  -->
+        <!-- k-means clustering, find two columns -->
+        <!-- spatial index met rbush, find closest -->
+        <!-- show output! -->
+
+        <!--
+        ==========================================================================================
+            Stephen:
+        ==========================================================================================
+        -->
+
+        <!--
+        ==========================================================================================
+            Bert (2/2):
+        ==========================================================================================
+        -->
+
+        <!-- building inspector, show all house numbers -->
+        <!-- trace streets, show all streets -->
+        <!-- show linking those datasets -->
+        <!-- show different spellings, etc -->
+        <!-- Address standardization challenges! -->
+        <!-- matching addresses from different datasets -->
+        <!-- NDJSON ingest to Space/Time, Space/Time data model -->
+        <!-- Reveal of Space/Time directory data in website -->
+        <!-- map of all people in nyc  -->
+
       </div>
     </div>
     <div id="caption-container">
