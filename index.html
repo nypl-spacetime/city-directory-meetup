@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Title!</title>
+    <title>Extracting a Million-Record Dataset from Historical NYC City Directories</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -67,12 +67,229 @@
         ==========================================================================================
         -->
 
-        <!-- Tesseract output: hOCR + example, in browser + in text -->
-        <!-- show bboxes! -->
-        <!-- histogram of bboxes  -->
-        <!-- k-means clustering, find two columns -->
-        <!-- spatial index met rbush, find closest -->
-        <!-- show output! -->
+        <section>
+          <h2>Goal</h2>
+          <p>From OCR'd text:</p>
+<pre><code data-trim data-noescape class="language-text">
+Hoffmann Max, physician, 70 Suffolk
+Hoffmann Paul, clerk, h 61 Ridge
+Hoffmaster Charles A. carver, 220 Centre, h Westchester
+Hogan Catharine, wid. John, teacher, 28 James, h 55 James
+</code></pre>
+          <p>To a searchable map:</p>
+          <img style="width: 90%; box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.3);" src="images/ridge-street-map.png" />
+        </section>
+
+        <section>
+<pre><code data-trim data-noescape class="language-html">
+&lt;div class='ocr_page'&gt;
+  &lt;p class='ocr_par'&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 18 679 641 712;&quot;&gt;
+      Hoffmann Max, physician, 70 Suffolk
+    &lt;/span&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 19 712 569 745;&quot;&gt;
+      Hoffmann Paul, clerk, h 61 Ridge
+    &lt;/span&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 21 1200 828 1234;&quot;&gt;
+      Hoffmaster Charles A. carver, 220 Centre, h West-
+    &lt;/span&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 84 1234 562 1259;&quot;&gt;
+      chester
+    &lt;/span&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 862 619 1675 655;&quot;&gt;
+      Hogan Catharine, wid. John, teacher, 28 James, h
+     &lt;/span&gt;
+     &lt;span class='ocr_line' title=&quot;bbox 927 653 1181 679;&quot;&gt;
+      55 James
+     &lt;/span&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+          <span class="caption">
+            <a href="https://en.wikipedia.org/wiki/HOCR">
+              Tesseract outputs hOCR: XML for OCR output
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <img class="stretch" src="images/hocr-svg.png" />
+          <span class="caption">
+            Visualization of lines from hOCR
+          </span>
+        </section>
+
+        <section>
+          <ol>
+            <li>Find X position of columns;</li>
+            <li>Remove headers, page numbers, etc.;</li>
+            <li>Connect indented lines</li>
+          </ol>
+          <span class="caption">
+            Turn hOCR lines into city directory entries
+          </span>
+        </section>
+
+        <section>
+          <iframe width="985.0313725490196" height="608.9341666666667" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQqiTn7fttoVHMSmFyXrDGQf1sJoymN7DzwSQiojZL3-CS2eEPRbAYTEF-Xf_HmKih4FzVxp1Nr23h8/pubchart?oid=1936994068&amp;format=interactive"></iframe>
+          <span class="caption">
+            Histogram of X position of hOCR lines
+          </span>
+        </section>
+
+        <section>
+          <img class="stretch" src="images/simple-statistics.png" />
+          <span class="caption">
+            <a href="https://simplestatistics.org/">
+            Simple Statistics: statistical methods for JavaScript
+            </a>
+          </span>
+        </section>
+
+        <section>
+<pre><code data-trim data-noescape class="language-js">
+const stats = require('simple-statistics')
+
+const xs = page.lines.map((line) => line.properties.bbox[0])
+
+// One indent per column, and four clusters for
+//   other stuff like page numbers and headings
+const columnCount = 2
+const clusterCount = columnCount * 2 + 4
+
+// Find clusters of x coordinates, sort by size
+const clusters = stats
+  .ckmeans(xs, clusterCount)
+  .sort((a, b) => b.length - a.length)
+
+// Compute mode of clusters, and use only
+//   the clusters we need
+const columns = clusters
+  .slice(0, columnCount)
+  .map(stats.mode)
+
+console.log(columns)
+// [ 34, 840 ]
+</code></pre>
+          <span class="caption">
+            Simple Statistics: statistical methods for JavaScript
+          </span>
+        </section>
+
+        <section>
+          <ol>
+            <li>Iterate over all lines that are not in one of main columns;</li>
+            <li>Find the closest line in the upper-left direction;</li>
+            <li>Connect them if this closest line is in one of main columns</li>
+          </ol>
+          <span class="caption">
+            Connecting indented lines
+          </span>
+        </section>
+
+        <section>
+          <!-- R-Tree, knn -->
+          <!-- rbush.png -->
+        </section>
+
+        <section>
+          <!-- https://github.com/mourner/rbush -->
+        </section>
+
+        <section>
+<pre><code data-trim data-noescape class="language-js">
+const rbush = require('rbush')
+
+// Create an Rbush R-tree index of all line bounding boxes:
+const tree = rbush(page.lines.length)
+tree.load(page.lines.map((line, index) => {
+  const x = line.properties.bbox[0], y = line.properties.bbox[1]
+  return {minX: x, minY: y, maxX: x, maxY: y, index}
+}))
+</code></pre>
+          <span class="caption">
+            Create a 2D spatial index of all lines with RBush
+          </span>
+        </section>
+
+        <section>
+<pre><code data-trim data-noescape class="language-js">
+const knn = require('rbush-knn')
+
+page.lines
+  // Only process lines that are not in one of the columns
+  .filter((line) => line.columnIndex === undefined)
+  .forEach((line, lineIndex) => {
+    const lineX = line.properties.bbox[0]
+    const lineY = line.properties.bbox[1]
+
+    const filter = (item) => {
+      const knnLine = page.lines[item.index]
+      const knnLineX = knnLine.properties.bbox[0]
+      const knnLineY = knnLine.properties.bbox[1]
+
+      return lineIndex !== item.index &amp;&amp;
+        knnLine.columnIndex !== undefined &amp;&amp;
+        knnLineX <= lineX &amp;&amp; knnLineY <= lineY
+    })
+
+    // Find closest 1 line to [lineX, lineY]
+    const neighbors = knn(tree, lineX, lineY, 1, filter)
+
+    // If neighbors.length >= 0, we should connect previousLine + line
+    const previousLine = neighbors[0]
+  })
+</code></pre>
+          <span class="caption">
+            Simple Statistics: statistical methods for JavaScript
+          </span>
+        </section>
+
+        <section>
+          <img class="stretch" src="images/hocr-detect-columns.gif" />
+          <span class="caption">
+            <a href="https://github.com/nyplspacetime/hocr-detect-columns">
+            Detecting columns, connecting lines
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <img class="stretch" src="images/hocr-detect-columns.png" />
+          <span class="caption">
+            <a href="https://github.com/nyplspacetime/hocr-detect-columns">
+            Node.js module to turn hOCR into entries
+            </a>
+          </span>
+        </section>
+
+         <section>
+          <p>From:</p>
+<pre><code data-trim data-noescape class="language-html">
+&lt;div class='ocr_page'&gt;
+  &lt;p class='ocr_par'&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 21 1200 828 1234;&quot;&gt;
+      Hoffmaster Charles A. carver, 220 Centre, h West-
+    &lt;/span&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 84 1234 562 1259;&quot;&gt;
+      chester
+    &lt;/span&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+            <p>To:</p>
+<pre><code data-trim data-noescape class="language-js">
+{"lines":
+  [
+    {"text": "Hoffmaster Charles A. carver, 220 Centre, h Westchester"}
+  ]
+}
+</code></pre>
+          <span class="caption">
+            Input and output of our Node.js module for hOCR files
+            </a>
+          </span>
+        </section>
 
         <!--
         ==========================================================================================
@@ -86,15 +303,369 @@
         ==========================================================================================
         -->
 
-        <!-- building inspector, show all house numbers -->
-        <!-- trace streets, show all streets -->
+        <section data-background="images/83c65380-5293-0134-830a-00505686a51c.jpg">
+          <span class="caption">
+            <a href="https://digitalcollections.nypl.org/items/83c65380-5293-0134-830a-00505686a51c">
+              John Canvin, pilot, 309 Water, h. 23 Hamilton
+            </a>
+          </span>
+        </section>
+
+        <section>
+<pre><code data-trim data-noescape class="language-js">
+{
+  "pageNum": 80,
+  "bbox": [62, 473, 756, 505],
+  "text": "Canvin John, pilot, 309 Water, h. 23 Hamilton",
+  "parsed": {
+    "subjects": ["Canvin John"],
+    "occupations": ["pilot"],
+    "addresses":[
+      ["309 Water"],
+      ["23 Hamilton","h"]
+    ]
+  }
+}
+</code></pre>
+          <span class="caption">
+            A city directory entry as structured data
+          </span>
+        </section>
+
+        <section>
+          <video class="stretch" data-autoplay src="images/23-hamilton-street.mp4"></video>
+          <span class="caption">
+            Finding 23 Hamilton Street...
+          </span>
+        </section>
+
+        <section>
+          <p>Hamilton Street no longer exists...</p>
+        </section>
+
+        <section data-background="images/510d47e0-bf40-a3d9-e040-e00a18064a99.jpg">
+          <span class="caption">
+            <a href="https://digitalcollections.nypl.org/items/510d47e0-bf40-a3d9-e040-e00a18064a99">
+              William Perris, Maps of the city of New York (1857)
+            </a>
+          </span>
+        </section>
+
+        <section data-background="images/knickerbocker-village.jpg">
+          <span class="caption">
+            <a href="https://www.google.nl/maps/@40.7092425,-73.9979319,190a,35y,45.84h,56.82t/data=!3m1!1e3">
+              Knickerbocker Village, in Google Earth
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <p>We need a database of historical addresses!</p>
+          <p class="fragment"><mark><strong>Let's use NYPL's digitized maps!</strong></mark></p>
+        </section>
+
+        <section data-background="images/510d47e2-548f-a3d9-e040-e00a18064a99.jpg">
+          <span class="caption">
+            <a href="https://digitalcollections.nypl.org/items/510d47e2-548f-a3d9-e040-e00a18064a99">
+              Detail of Plate 3, Atlas of the Bronx (1921)
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <img src="images/mapwarper-9464-rectify.png" />
+          <span class="caption">
+            <a href="http://maps.nypl.org/warper/maps/9464#Rectify_tab">
+              Map Warper, our website for crowdsourced map georectification
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <img src="images/mapwarper-9464-crop.png" />
+          <span class="caption">
+            <a href="http://maps.nypl.org/warper/maps/9464#Crop_tab">
+              Cropping the image, keeping only cartographic material
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <img src="images/mapwarper-9464-preview.png" />
+          <span class="caption">
+            <a href="http://maps.nypl.org/warper/maps/9464#Preview_tab">
+              Showing the rectified map on top of New York City today
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <img src="images/mapwarper-layer-883.png" />
+          <span class="caption">
+            <a href="http://maps.nypl.org/warper/layers/883">
+              Stitching all pages from the atlas together
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <img class="stretch" src="images/building-inspector.png"></video>
+          <span class="caption">
+            <a href="http://buildinginspector.nypl.org/">Building Inspector: from maps to historical building and address data</a>
+          </span>
+        </section>
+
+        <section>
+          <video class="stretch" data-autoplay src="images/building-inspector.mp4"></video>
+          <span class="caption">
+            <a href="http://buildinginspector.nypl.org/">Crowdsourced transcription of house numbers with Building Inspector</a>
+          </span>
+        </section>
+
+        <section>
+          <img class="stretch" src="images/building-inspector-api.png"></video>
+          <span class="caption">
+            <a href="http://buildinginspector.nypl.org/">
+              All Building Inspector data is available via an API
+            </a>
+          </span>
+        </section>
+
+        <section data-background="images/building-inspector-addresses.png">
+          <span class="caption">
+            Our dataset of historical house numbers
+          </span>
+        </section>
+
+        <section data-background="images/tracing-qgis.gif">
+          <span class="caption">
+            A database of historical streets, traced from maps &amp; atlases
+          </span>
+        </section>
+
+        <section data-background-iframe="http://mgiraldo.github.io/centerlines">
+          <span class="caption">
+            <a href="http://mgiraldo.github.io/centerlines">Tracing all streets from a 1854 atlas of Manhattan</a>
+          </span>
+        </section>
+
+        <section data-background="images/nyc-streets.png">
+          <span class="caption">
+            <a href="https://github.com/nypl-spacetime/qgis-trace-tutorial">
+            Our dataset of historical streets (you can help us trace!)
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <img class="stretch" src="images/spacetime-etl.svg" />
+          <span class="caption">
+            Extract data from different sources, convert to NDJSON
+          </span>
+        </section>
+
+        <section>
+          <img class="stretch" src="images/spacetime-data.png" />
+          <span class="caption">
+            <a href="http://spacetime.nypl.org/#data">Open historical datasets on spacetime.nypl.org</a>
+          </span>
+        </section>
+
+        <section>
+          <img src="images/qgis.gif" />
+          <span class="caption">
+            Datasets from the NYC Space/Time Directory visualized with QGIS
+          </span>
+        </section>
+
+        <section>
+          <ul>
+            <li>861 streets</li>
+            <li>74,635 house numbers</li>
+          </ul>
+        </section>
+
+        <section>
+          <img class="stretch" src="images/inference.svg" />
+          <span class="caption">
+            New insights from combining historical datasets
+          </span>
+        </section>
+
+        <section data-background="images/west-village.jpg">
+          <span class="caption">
+            <a href="http://bertspaan.nl/west-village">
+              house numbers + streets = addresses
+            </a>
+          </span>
+        </section>
+
         <!-- show linking those datasets -->
-        <!-- show different spellings, etc -->
-        <!-- Address standardization challenges! -->
+        <!-- west-village -->
+        <!-- hoe? met rbush + turf -->
+
+        <section>
+          <ul>
+            <li>861 streets</li>
+            <li>74,635 house numbers</li>
+            <li><strong>48,754 addresses</strong></li>
+          </ul>
+        </section>
+
+        <section>
+          <video class="stretch" loop data-autoplay src="images/historical-addresses.mp4"></video>
+          <span class="caption">
+            <a href="https://github.com/nypl-spacetime/tutorial-historical-addresses">
+              A simple geocoder for historical addresses, made with Lunr
+            </a>
+          </span>
+        </section>
+
+        <section data-background="images/510d47d9-4f8c-a3d9-e040-e00a18064a99.jpg">
+          <span class="caption">
+            <a href="https://digitalcollections.nypl.org/items/510d47d9-4f8c-a3d9-e040-e00a18064a99">
+              Talman Street, no. 57, Brooklyn
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <table>
+            <tr><td>Fifth</td> <td>⟶</td> <td>Fifth Avenue</td></tr>
+            <tr><td>Rivington</td><td>⟶</td><td>Rivington Street</td></tr>
+            <tr><td>Av B</td><td>⟶</td><td>Avenue B</td></tr>
+            <tr><td>W. 17th</td><td>⟶</td><td>West 17th Street</td></tr>
+            <tr><td>B'way</td><td>⟶</td><td>Broadway</td></li>
+            <tr><td>Grace Ct.</td><td>⟶</td><td>Grace Court</td></tr>
+            <tr><td>Thirty-First</td><td>⟶</td><td>31st Street</td></tr>
+            <tr><td>B'ry</td><td>⟶</td><td>Bowery</td></tr>
+          </table>
+          <span class="caption">
+            <a href="https://github.com/nypl-spacetime/nyc-street-normalizer">
+              Street names from city directories need to be normalized
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <img class="stretch" src="images/nyc-street-normalizer.png" />
+          <span class="caption">
+            <a href="https://github.com/nypl-spacetime/nyc-street-normalizer">
+              Node.js library to normalize NYC street names
+            </a>
+          </span>
+        </section>
+
+        <section>
+<pre><code data-trim data-noescape class="language-js">
+const normalizer = require('@spacetime/nyc-street-normalizer')
+
+const input = [
+  "13th avenue", "Vernon Blvd", "E. 35th", "Macdougal",
+  "Shore Rd", "B'way", "E. Twenty-Second St",
+]
+
+input.forEach((street) => console.log(street, '⟶', normalizer(street)))
+//  13th avenue ⟶ Thirteenth Avenue
+//  Vernon Blvd ⟶ Vernon Boulevard
+//  E. 35th ⟶ East 35th Street
+//  Macdougal ⟶ MacDougal Street
+//  Shore Rd ⟶ Shore Road
+//  B'way ⟶ Broadway
+//  E. Twenty-Second St ⟶ East 22nd Street
+</code></pre>
+          <span class="caption">
+            <a href="https://github.com/nypl-spacetime/nyc-street-normalizer">
+              Example code, showing street name normalization
+            </a>
+          </span>
+        </section>
+
+        <!-- find matches ! -->
         <!-- matching addresses from different datasets -->
-        <!-- NDJSON ingest to Space/Time, Space/Time data model -->
         <!-- Reveal of Space/Time directory data in website -->
-        <!-- map of all people in nyc  -->
+
+         <section>
+          <ul>
+            <li>861 streets</li>
+            <li>74,635 house numbers</li>
+            <li>48,754 addresses</li>
+            <li>3,133,624 city directory entries (28 volumes)</li>
+            <li><strong>967,482 geocoded entries</strong></li>
+          </ul>
+        </section>
+
+        <section data-background="images/geocoded-city-directories.png">
+          <span class="caption">
+            967,482 geocoded city directory entries
+          </span>
+        </section>
+
+        <section data-background-video="images/lower-east-side-1854.mp4" data-background-video-loop="true">
+          <span class="caption">
+            <a href="http://spacetime.nypl.org/lower-east-side-1854/">
+              City directories, geocoded with historical address data
+            </a>
+          </span>
+        </section>
+
+        <section>
+          <iframe width="800" height="700" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQqiTn7fttoVHMSmFyXrDGQf1sJoymN7DzwSQiojZL3-CS2eEPRbAYTEF-Xf_HmKih4FzVxp1Nr23h8/pubchart?oid=1645588346&format=interactive"></iframe>
+          <span class="caption">
+            Occupations, counted
+          </span>
+        </section>
+
+        <section>
+          <p>What's next?</p>
+        </section>
+
+        <section data-background="images/40a6a2f0-474d-0132-a8bc-58d385a7bbd0.jpg">
+          <span class="caption">
+            <a href="https://digitalcollections.nypl.org/items/40a6a2f0-474d-0132-a8bc-58d385a7bbd0">
+              Auto-digest register and trade weekly (1918)
+            </a>
+          </span>
+        </section>
+
+        <section data-background="images/510d47dd-13bc-a3d9-e040-e00a18064a99.jpg">
+          <span class="caption">
+            <a href="https://digitalcollections.nypl.org/items/510d47dd-13bc-a3d9-e040-e00a18064a99">
+              Manhattan: 86th Street - Amsterdam Avenue (1918)
+            </a>
+          </span>
+        </section>
+
+        <section data-transition="slide" data-transition-speed="slow">
+          <img class="stretch" src="images/locomobile.png" />
+          <img class="fragment fade-up" src="images/locomobile-price.png" />
+          <span class="caption">
+            <a href="https://digitalcollections.nypl.org/items/510d47de-09dd-a3d9-e040-e00a18064a99">Locomobile “30” (1909)</a>
+          </span>
+        </section>
+
+        <section>
+          <img class="stretch" src="images/510d47de-09da-a3d9-e040-e00a18064a99.png" />
+          <span class="caption">
+            <a href="https://digitalcollections.nypl.org/items/510d47de-09da-a3d9-e040-e00a18064a99">The Locomobile Book (1909)</a>
+          </span>
+        </section>
+
+        <section>
+          <p>What's next?</p>
+          <p><mark>Making all this data searchable and visible!</mark></p>
+        </section>
+
+        <section>
+          <video class="stretch" data-autoplay src="images/atlas.mp4"></video>
+          <span class="caption">
+            Atlas: a new UI to search &amp; visualize all NYC Space/Time Directory data
+          </span>
+        </section>
+
+        <section class="block-text" data-background="PLAATJE.jpg">
+          <h2><span class="block">Thanks!</span></h2>
+        </section>
 
       </div>
     </div>

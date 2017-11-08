@@ -40,7 +40,7 @@ body, .reveal a, .reveal a:visited,
   text-decoration: none;
   padding-right: 16px;
 
-  background-image: url(../../nypl-talks-assets/external-link.svg);
+  background-image: url(../images/external-link.svg);
   background-repeat: no-repeat;
   background-position: top right;
   background-size: 16px;
