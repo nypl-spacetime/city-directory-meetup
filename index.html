@@ -85,6 +85,124 @@
       ==========================================================================================
       -->
 
+      <section>
+        <h4>NewYorkScapes Archives + Data Projects, 2014-2017</h4><br/>
+        <div style="width: 100%">
+          <div style="width: 20%; float: left; display: inline-block;">
+            <img src="images/logo_highres.png" />
+        </div>
+        <div style="width: 80%; display: inline-block;">
+          <ul><li>Municipal Archives Bodies in Transit Records</li>
+            <li>Emigrant Savings Bank Test Account Books</li>
+            <li>Fales Library Digital Downtown</li>
+            <li>NYC NYPL Business Directories</li>
+          </ul><br/>For more see <a href="https://newyorkscapes.org/project/">newyorkscapes.org/project</a>
+        </div>
+      </section>
+
+      <section>
+        <h4>Wilson Business Directory, 1852-53</h4>
+        <div align="left">
+          <img src="images/wilson-directory.jpg" width="20%" height="20%" align="left" />
+        </div>
+        <iframe src="http://nwolf.hosting.nyu.edu/geo/wilson.html" width="80%" height="500"></iframe>
+      </section>
+
+      <section>
+        <h4>New York City Directories: Potentials and Pitfalls</h4>
+        <div style="width: 100%">
+          <div style="width: 20%; float: left; display: inline-block;">
+            <img src="images/directory-pages.gif" />
+          </div>
+          <div style="width: 80%; display: inline-block;">
+            <ul>
+              <li>Provide attestations of addresses, including those not on maps</li>
+              <li>Occupations and names for the peopled landscape of the city</li>
+              <li>Additional attributes such as widowhood of females, marking of "colored"-ness</li>
+              <li>Chronological breadth: ~1786-1801, 1849-1922</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h4>NYU + NYPL Space/Time: Goals and Objectives</h4>
+        <div style="width: 100%">
+          <div style="width: 20%; float: left; display: inline-block;">
+            <img src="images/directory-pages-static.jpg" />
+          </div>
+          <div style="width: 80%; display: inline-block;">
+            <ul>
+              <li>Build full digital-image-to-Space/Time-data workflow</li>
+              <li>Cleaning, ordering, and ingesting "At a Distance"</li>
+              <li>Replicable workflows for other city's directories</li>
+              <li>Maximize accuracy with minimal human correction</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h4>Tesseract and OCR</h4>
+        <div style="width: 100%">
+          <div style="width: 20%; float: left; display: inline-block;">
+            <img src="images/ocr-extract-gif.gif" />
+            <p style="font-size:20px">Doggett &amp; Rode 1851/52 Directory</p>
+          </div>
+          <div style="width: 80%; display: inline-block;">
+            <ul>
+              <li>Tesseract3 (with training) ➔ Tesseract4 (without training): 10-15% improvement</li>
+              <li>OCR error rate of 5% sample with Tesseract4: 11% (with a std dev of 0.07 on post-1849 directories)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h4>A Typology of OCR Errors and Uncertainties</h4>
+        <table>
+          <thead>
+            <th>Type</th>
+            <th>Percent of Sample</th>
+            <th>Remedy</th>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Blacklist character(s)</td>
+              <td>0.94%</td>
+              <td>Match string at a distance and swap offending character</td>
+            </tr>
+            <tr>
+              <td>No whitelist characters</td>
+              <td>4.08%</td>
+              <td>Discard(?)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h4>A Typology of OCR Errors and Uncertainties</h4>
+        <table>
+          <thead>
+            <th>Type</th>
+            <th>Percent of Sample</th><th>Remedy</th>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Words not in name/occ/street dictionaries</td>
+              <td>2.2%</td>
+              <td>Crowdsource corrections (if any)</td>
+            </tr>
+            <tr>
+              <td>Remainders</td>
+              <td>7.8%</td>
+              <td>Sort errors/non-errors and match leftovers at a distance</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
       <!--
       ==========================================================================================
           Bert (1/2):
@@ -157,7 +275,7 @@ Hogan Catharine, wid. John, teacher, 28 James, h 55 James
 
       <section>
         <!-- <iframe width="985.0313725490196" height="608.9341666666667" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQqiTn7fttoVHMSmFyXrDGQf1sJoymN7DzwSQiojZL3-CS2eEPRbAYTEF-Xf_HmKih4FzVxp1Nr23h8/pubchart?oid=1936994068&amp;format=interactive"></iframe> -->
-        <img src="images/histogram.png" />
+        <img class="stretch" src="images/histogram.png" />
         <span class="caption">
           Histogram of X position of hOCR lines
         </span>
@@ -1181,10 +1299,17 @@ input.forEach((street) => console.log(street, '⟶', normalizer(street)))
       </section>
 
       <section>
-        <img src="images/chart-occupations.png" />
+        <img class="stretch" src="images/chart-occupations.png" />
         <!-- <iframe width="800" height="700" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQqiTn7fttoVHMSmFyXrDGQf1sJoymN7DzwSQiojZL3-CS2eEPRbAYTEF-Xf_HmKih4FzVxp1Nr23h8/pubchart?oid=1645588346&format=interactive"></iframe> -->
         <span class="caption">
           Occupations, counted
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/names-counted.png" />
+        <span class="caption">
+          Names, counted
         </span>
       </section>
 
@@ -1231,19 +1356,26 @@ input.forEach((street) => console.log(street, '⟶', normalizer(street)))
       <section>
         <video class="stretch" data-autoplay src="images/atlas.mp4"></video>
         <span class="caption">
-          Atlas: a new UI to search &amp; visualize all NYC Space/Time Directory data
+          A new UI to search &amp; visualize all NYC Space/Time Directory data
         </span>
       </section>
 
-      <section class="block-text" data-background="PLAATJE.jpg">
+      <section class="block-text">
         <h2><span class="block">Thanks!</span></h2>
         <p>
-          All the data will soon be available on <a href="http://spacetime.nypl.org">spacetime.nypl.org</a>
+          <mark>All the data will soon be available on <a href="http://spacetime.nypl.org">spacetime.nypl.org</a></mark>
         </p>
         <p>Slides:</p>
         <p>
           <a href="http://spacetime.nypl.org/city-directories-meetup">spacetime.nypl.org/city-directories-meetup</a>
         </p>
+      </section>
+
+      <section>
+        <img src="images/510d47e1-2832-a3d9-e040-e00a18064a99.jpg" />
+        <span class="caption">
+          Who wants a beer?
+        </span>
       </section>
 
     </div>

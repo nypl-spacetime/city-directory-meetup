@@ -18,7 +18,7 @@ Reveal.initialize({
 })
 
 Reveal.addEventListener('slidechanged', function (event) {
-  setCaption(event.currentSlide)
+  setCaption(event.indexh, event.currentSlide)
 })
 
 function shuffle (str) {
@@ -34,7 +34,11 @@ function shuffle (str) {
   return chars.join('')
 }
 
-function setCaption (slide) {
+function getCurrentIndex () {
+  return Reveal.getIndices().h
+}
+
+function setCaption (index, slide) {
   var globalCaption = document.getElementById('caption')
 
   var slideCaption = slide.querySelectorAll('.caption')[0]
@@ -52,6 +56,10 @@ function setCaption (slide) {
   var length = 0
 
   function step () {
+    if (getCurrentIndex() !== index) {
+      return
+    }
+
     length += 2
 
     if (length < text.length) {
@@ -70,4 +78,4 @@ function setCaption (slide) {
   window.requestAnimationFrame(step)
 }
 
-setCaption(Reveal.getCurrentSlide())
+setCaption(getCurrentIndex(), Reveal.getCurrentSlide())
