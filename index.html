@@ -115,23 +115,25 @@ Hogan Catharine, wid. John, teacher, 28 James, h 55 James
         <section>
           <img class="stretch" src="images/hocr-svg.png" />
           <span class="caption">
-            Visualization of lines from hOCR
+            Visualization of bounding boxes of lines from hOCR
           </span>
         </section>
 
         <section>
           <ol>
-            <li>Find X position of columns;</li>
             <li>Remove headers, page numbers, etc.;</li>
             <li>Connect indented lines</li>
           </ol>
+          <p></p>
+          <img class="stretch" src="images/hocr-svg-detail.png" />
           <span class="caption">
             Turn hOCR lines into city directory entries
           </span>
         </section>
 
         <section>
-          <iframe width="985.0313725490196" height="608.9341666666667" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQqiTn7fttoVHMSmFyXrDGQf1sJoymN7DzwSQiojZL3-CS2eEPRbAYTEF-Xf_HmKih4FzVxp1Nr23h8/pubchart?oid=1936994068&amp;format=interactive"></iframe>
+          <!-- <iframe width="985.0313725490196" height="608.9341666666667" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQqiTn7fttoVHMSmFyXrDGQf1sJoymN7DzwSQiojZL3-CS2eEPRbAYTEF-Xf_HmKih4FzVxp1Nr23h8/pubchart?oid=1936994068&amp;format=interactive"></iframe> -->
+          <img src="images/histogram.png" />
           <span class="caption">
             Histogram of X position of hOCR lines
           </span>
@@ -172,15 +174,15 @@ console.log(columns)
 // [ 34, 840 ]
 </code></pre>
           <span class="caption">
-            Simple Statistics: statistical methods for JavaScript
+            Finding columns with Simple Statistics
           </span>
         </section>
 
         <section>
+          <p>For all lines that are outside of 2 columns:</p>
           <ol>
-            <li>Iterate over all lines that are not in one of main columns;</li>
-            <li>Find the closest line in the upper-left direction;</li>
-            <li>Connect them if this closest line is in one of main columns</li>
+            <li>Find closest line in upper-left direction ↖</li>
+            <li>Connect them if this line is inside column ⟷</li>
           </ol>
           <span class="caption">
             Connecting indented lines
@@ -188,12 +190,19 @@ console.log(columns)
         </section>
 
         <section>
-          <!-- R-Tree, knn -->
-          <!-- rbush.png -->
+          <img class="stretch" src="images/rtree.png" />
+          <span class="caption">
+            Finding the closest line with a 2D spatial index
+          </span>
         </section>
 
         <section>
-          <!-- https://github.com/mourner/rbush -->
+          <img class="stretch" src="images/rbush-github.png" />
+          <span class="caption">
+            <a href="https://github.com/mourner/rbush">
+             RBush: R-tree-based 2D spatial index for JavaScript
+            </a>
+          </span>
         </section>
 
         <section>
@@ -241,14 +250,16 @@ page.lines
   })
 </code></pre>
           <span class="caption">
-            Simple Statistics: statistical methods for JavaScript
+            <a href="https://github.com/mourner/rbush-knn">
+            rbush-knn: k-nearest neighbors search for RBush
+            </a>
           </span>
         </section>
 
         <section>
           <img class="stretch" src="images/hocr-detect-columns.gif" />
           <span class="caption">
-            <a href="https://github.com/nyplspacetime/hocr-detect-columns">
+            <a href="https://github.com/nypl-spacetime/hocr-detect-columns">
             Detecting columns, connecting lines
             </a>
           </span>
@@ -257,7 +268,7 @@ page.lines
         <section>
           <img class="stretch" src="images/hocr-detect-columns.png" />
           <span class="caption">
-            <a href="https://github.com/nyplspacetime/hocr-detect-columns">
+            <a href="https://github.com/nypl-spacetime/hocr-detect-columns">
             Node.js module to turn hOCR into entries
             </a>
           </span>
@@ -500,10 +511,6 @@ page.lines
           </span>
         </section>
 
-        <!-- show linking those datasets -->
-        <!-- west-village -->
-        <!-- hoe? met rbush + turf -->
-
         <section>
           <ul>
             <li>861 streets</li>
@@ -581,9 +588,34 @@ input.forEach((street) => console.log(street, '⟶', normalizer(street)))
           </span>
         </section>
 
-        <!-- find matches ! -->
-        <!-- matching addresses from different datasets -->
-        <!-- Reveal of Space/Time directory data in website -->
+        <section>
+          <p>Normalized address from city directory:</p>
+<pre><code data-trim data-noescape class="language-js">
+{
+  "pageNum": 80,
+  "bbox": [62, 473, 756, 505],
+  "text": "Canvin John, pilot, 309 Water, h. 23 Hamilton",
+  "normalizedAddress": "23 Hamilton Street"
+}
+</code></pre>
+          <p>Historical address, with coordinates:</p>
+<pre><code data-trim data-noescape class="language-js">
+{
+  "name": "23 Hamilton Street",
+  "data": {
+    "mapId":7138,
+    "borough":"Manhattan"
+  },
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-73.9955835, 40.7110962]
+  }
+}
+</code></pre>
+          <span class="caption">
+            Match normalized addresses from two datasets
+          </span>
+        </section>
 
          <section>
           <ul>
@@ -610,7 +642,8 @@ input.forEach((street) => console.log(street, '⟶', normalizer(street)))
         </section>
 
         <section>
-          <iframe width="800" height="700" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQqiTn7fttoVHMSmFyXrDGQf1sJoymN7DzwSQiojZL3-CS2eEPRbAYTEF-Xf_HmKih4FzVxp1Nr23h8/pubchart?oid=1645588346&format=interactive"></iframe>
+          <img src="images/chart-occupations.png" />
+          <!-- <iframe width="800" height="700" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQqiTn7fttoVHMSmFyXrDGQf1sJoymN7DzwSQiojZL3-CS2eEPRbAYTEF-Xf_HmKih4FzVxp1Nr23h8/pubchart?oid=1645588346&format=interactive"></iframe> -->
           <span class="caption">
             Occupations, counted
           </span>
