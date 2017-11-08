@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
   <title>Extracting a Million-Record Dataset from Historical NYC City Directories</title>
@@ -12,22 +11,20 @@
   <link rel="stylesheet" href="css/theme.css" id="theme">
   <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
   <!-- Resolution: 1280 x 800 -->
 
   <div class="reveal">
-
-
-    <!-- Begin SGB slides: -->
-
     <div class="slides">
 
       <!-- For example slides, see https://github.com/bertspaan/nacis-2017/blob/master/index.html -->
 
-      <section class="block-text" data-background="---->background.jpg">
+      <section class="block-text" data-background="images/119.56783783.6ba50f00-5ce4-0134-32e3-00505686a51c.jpeg">
+        <div>
+          <span class="block">Extracting a Million-Record Dataset from Historical NYC City Directories</span>
+        </div>
         <span class="caption">
-          Extracting a Million-Record Dataset from Historical NYC City Directories
+          NYU English Department, November 8th, 2017
         </span>
       </section>
 
@@ -73,12 +70,240 @@
       ==========================================================================================
       -->
 
-      <!-- Tesseract output: hOCR + example, in browser + in text -->
-      <!-- show bboxes! -->
-      <!-- histogram of bboxes  -->
-      <!-- k-means clustering, find two columns -->
-      <!-- spatial index met rbush, find closest -->
-      <!-- show output! -->
+      <section>
+        <h2>Goal</h2>
+        <p>From OCR'd text:</p>
+<pre><code data-trim data-noescape class="language-text">
+Hoffmann Max, physician, 70 Suffolk
+Hoffmann Paul, clerk, h 61 Ridge
+Hoffmaster Charles A. carver, 220 Centre, h Westchester
+Hogan Catharine, wid. John, teacher, 28 James, h 55 James
+</code></pre>
+        <p>To a searchable map:</p>
+        <img style="width: 90%; box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.3);" src="images/ridge-street-map.png" />
+      </section>
+
+      <section>
+<pre><code data-trim data-noescape class="language-html">
+&lt;div class='ocr_page'&gt;
+  &lt;p class='ocr_par'&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 18 679 641 712;&quot;&gt;
+      Hoffmann Max, physician, 70 Suffolk
+    &lt;/span&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 19 712 569 745;&quot;&gt;
+      Hoffmann Paul, clerk, h 61 Ridge
+    &lt;/span&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 21 1200 828 1234;&quot;&gt;
+      Hoffmaster Charles A. carver, 220 Centre, h West-
+    &lt;/span&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 84 1234 562 1259;&quot;&gt;
+      chester
+    &lt;/span&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 862 619 1675 655;&quot;&gt;
+      Hogan Catharine, wid. John, teacher, 28 James, h
+     &lt;/span&gt;
+     &lt;span class='ocr_line' title=&quot;bbox 927 653 1181 679;&quot;&gt;
+      55 James
+     &lt;/span&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+        <span class="caption">
+          <a href="https://en.wikipedia.org/wiki/HOCR">
+            Tesseract outputs hOCR: XML for OCR output
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/hocr-svg.png" />
+        <span class="caption">
+          Visualization of bounding boxes of lines from hOCR
+        </span>
+      </section>
+
+      <section>
+        <ol>
+          <li>Remove headers, page numbers, etc.;</li>
+          <li>Connect indented lines</li>
+        </ol>
+        <p></p>
+        <img class="stretch" src="images/hocr-svg-detail.png" />
+        <span class="caption">
+          Turn hOCR lines into city directory entries
+        </span>
+      </section>
+
+      <section>
+        <!-- <iframe width="985.0313725490196" height="608.9341666666667" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQqiTn7fttoVHMSmFyXrDGQf1sJoymN7DzwSQiojZL3-CS2eEPRbAYTEF-Xf_HmKih4FzVxp1Nr23h8/pubchart?oid=1936994068&amp;format=interactive"></iframe> -->
+        <img src="images/histogram.png" />
+        <span class="caption">
+          Histogram of X position of hOCR lines
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/simple-statistics.png" />
+        <span class="caption">
+          <a href="https://simplestatistics.org/">
+          Simple Statistics: statistical methods for JavaScript
+          </a>
+        </span>
+      </section>
+
+      <section>
+<pre><code data-trim data-noescape class="language-js">
+const stats = require('simple-statistics')
+
+const xs = page.lines.map((line) => line.properties.bbox[0])
+
+// One indent per column, and four clusters for
+//   other stuff like page numbers and headings
+const columnCount = 2
+const clusterCount = columnCount * 2 + 4
+
+// Find clusters of x coordinates, sort by size
+const clusters = stats
+  .ckmeans(xs, clusterCount)
+  .sort((a, b) => b.length - a.length)
+
+// Compute mode of clusters, and use only
+//   the clusters we need
+const columns = clusters
+  .slice(0, columnCount)
+  .map(stats.mode)
+
+console.log(columns)
+// [ 34, 840 ]
+</code></pre>
+        <span class="caption">
+          Finding columns with Simple Statistics
+        </span>
+      </section>
+
+      <section>
+        <p>For all lines that are outside of 2 columns:</p>
+        <ol>
+          <li>Find closest line in upper-left direction ↖</li>
+          <li>Connect them if this line is inside column ⟷</li>
+        </ol>
+        <span class="caption">
+          Connecting indented lines
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/rtree.png" />
+        <span class="caption">
+          Finding the closest line with a 2D spatial index
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/rbush-github.png" />
+        <span class="caption">
+          <a href="https://github.com/mourner/rbush">
+           RBush: R-tree-based 2D spatial index for JavaScript
+          </a>
+        </span>
+      </section>
+
+      <section>
+<pre><code data-trim data-noescape class="language-js">
+const rbush = require('rbush')
+
+// Create an Rbush R-tree index of all line bounding boxes:
+const tree = rbush(page.lines.length)
+tree.load(page.lines.map((line, index) => {
+  const x = line.properties.bbox[0], y = line.properties.bbox[1]
+  return {minX: x, minY: y, maxX: x, maxY: y, index}
+}))
+</code></pre>
+        <span class="caption">
+          Create a 2D spatial index of all lines with RBush
+        </span>
+      </section>
+
+      <section>
+<pre><code data-trim data-noescape class="language-js">
+const knn = require('rbush-knn')
+
+page.lines
+  // Only process lines that are not in one of the columns
+  .filter((line) => line.columnIndex === undefined)
+  .forEach((line, lineIndex) => {
+    const lineX = line.properties.bbox[0]
+    const lineY = line.properties.bbox[1]
+
+    const filter = (item) => {
+      const knnLine = page.lines[item.index]
+      const knnLineX = knnLine.properties.bbox[0]
+      const knnLineY = knnLine.properties.bbox[1]
+
+      return lineIndex !== item.index &amp;&amp;
+        knnLine.columnIndex !== undefined &amp;&amp;
+        knnLineX <= lineX &amp;&amp; knnLineY <= lineY
+    })
+
+    // Find closest 1 line to [lineX, lineY]
+    const neighbors = knn(tree, lineX, lineY, 1, filter)
+
+    // If neighbors.length >= 0, we should connect previousLine + line
+    const previousLine = neighbors[0]
+  })
+</code></pre>
+        <span class="caption">
+          <a href="https://github.com/mourner/rbush-knn">
+          rbush-knn: k-nearest neighbors search for RBush
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/hocr-detect-columns.gif" />
+        <span class="caption">
+          <a href="https://github.com/nypl-spacetime/hocr-detect-columns">
+          Detecting columns, connecting lines
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/hocr-detect-columns.png" />
+        <span class="caption">
+          <a href="https://github.com/nypl-spacetime/hocr-detect-columns">
+          Node.js module to turn hOCR into entries
+          </a>
+        </span>
+      </section>
+
+       <section>
+        <p>From:</p>
+<pre><code data-trim data-noescape class="language-html">
+&lt;div class='ocr_page'&gt;
+  &lt;p class='ocr_par'&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 21 1200 828 1234;&quot;&gt;
+      Hoffmaster Charles A. carver, 220 Centre, h West-
+    &lt;/span&gt;
+    &lt;span class='ocr_line' title=&quot;bbox 84 1234 562 1259;&quot;&gt;
+      chester
+    &lt;/span&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+          <p>To:</p>
+<pre><code data-trim data-noescape class="language-js">
+{"lines":
+  [
+    {"text": "Hoffmaster Charles A. carver, 220 Centre, h Westchester"}
+  ]
+}
+</code></pre>
+        <span class="caption">
+          Input and output of our Node.js module for hOCR files
+          </a>
+        </span>
+      </section>
 
       <!--
       ==========================================================================================
@@ -86,26 +311,7 @@
       ==========================================================================================
       -->
 
-      <!--
-      ==========================================================================================
-          Bert (2/2):
-      ==========================================================================================
-      -->
-
-      <!-- building inspector, show all house numbers -->
-      <!-- trace streets, show all streets -->
-      <!-- show linking those datasets -->
-      <!-- show different spellings, etc -->
-      <!-- Address standardization challenges! -->
-      <!-- matching addresses from different datasets -->
-      <!-- NDJSON ingest to Space/Time, Space/Time data model -->
-      <!-- Reveal of Space/Time directory data in website -->
-      <!-- map of all people in nyc  -->
-
-
-
-
-      <section class="block-text" data-background="../city-directory-meetup/images/119.56783783.6ba50f00-5ce4-0134-32e3-00505686a51c.jpeg">
+      <section class="block-text" data-background="images/119.56783783.6ba50f00-5ce4-0134-32e3-00505686a51c.jpeg">
         <div>
           <span class="block"><strong>Field labeling</strong></span>
         </div>
@@ -113,10 +319,11 @@
           <span class="block">Stephen Balogh, New York University</span>
         </div>
         <span class="caption">
-						Extracting labeled fields from directory entries
-					</span>
+          Extracting labeled fields from directory entries
+        </span>
       </section>
-<!--
+
+      <!--
       <section>
         <ul>
           <li><b>Input:</b></li>
@@ -134,82 +341,75 @@
               Background
             </span>
       </section>
--->
+      -->
+
       <section data-background="#000">
         <ul>
           <li>How do we extract structured knowledge from a directory entry?</li>
-          </ol>
-          <span class="caption">
-              Problem
-            </span>
+        </ul>
+        <span class="caption">
+          Problem
+        </span>
       </section>
 
       <section data-background="#000">
-        <img class="stretch" src="../city-directory-meetup/images/label-extraction/animation-0.jpg" />
+        <img class="stretch" src="images/label-extraction/animation-0.jpg" />
         <span class="caption">
-						A sample directory sheet...
-					</span>
+          A sample directory sheet...
+        </span>
       </section>
 
       <section data-background="#000">
-        <img class="stretch" src="../city-directory-meetup/images/label-extraction/animation-1.jpg">
+        <img class="stretch" src="images/label-extraction/animation-1.jpg">
         <span class="caption">
-            Find names of <b>individuals</b> and <b>companies</b>
-          </span>
+          Find names of <b>individuals</b> and <b>companies</b>
+        </span>
       </section>
 
       <section data-background="#000">
-        <img class="stretch" src="../city-directory-meetup/images/label-extraction/animation-2.jpg">
+        <img class="stretch" src="images/label-extraction/animation-2.jpg">
         <span class="caption">
-            Find <b>occupations</b>
-          </span>
+          Find <b>occupations</b>
+        </span>
       </section>
 
       <section data-background="#000">
-        <img class="stretch" src="../city-directory-meetup/images/label-extraction/animation-3.jpg">
+        <img class="stretch" src="images/label-extraction/animation-3.jpg">
         <span class="caption">
-            Find <b>predicates</b> of space
-          </span>
+          Find <b>predicates</b> of space
+        </span>
       </section>
 
       <section data-background="#000">
-        <img class="stretch" src="../city-directory-meetup/images/label-extraction/animation-4.jpg">
+        <img class="stretch" src="images/label-extraction/animation-4.jpg">
         <span class="caption">
-            Find <b>addresses</b> and <b>locations</b>
-          </span>
+          Find <b>addresses</b> and <b>locations</b>
+        </span>
       </section>
 
       <section>
         <b style="background-color:#f192a6">George Binkenburg</b>, <b style="background-color:#91c8f7">pianomkr.</b> <b style="background-color:#fffab2">h.</b> <b style="background-color:#73ce9f">924 Third av.</b>
         <ol>
-          <div class="fragment">
-            <li><b>name</b></li> ⇒ <em>"George Binkenburg"</em>
-          </div>
-          <div class="fragment">
-            <li><b>occupation</b></li> ⇒ <em>"pianomkr."</em>
-          </div>
-          <div class="fragment">
-            <li><b>location predicate</b></li> ⇒ <em>"h."</em> (home)
-          </div>
-          <div class="fragment">
-            <li><b>address</b></li> ⇒ <em>"924 Third av."</em>
-          </div>
+          <li class="fragment"><b>name</b><br /> ⇒ <em>"George Binkenburg"</em></li>
+          <li class="fragment"><b>occupation</b><br /> ⇒ <em>"pianomkr."</em></li>
+          <li class="fragment"><b>location predicate</b><br /> ⇒ <em>"h."</em> (home)</li>
+          <li class="fragment"><b>address</b><br /> ⇒ <em>"924 Third av."</em></li>
         </ol>
         <span class="caption">
-            Four main types of labels
-          </span>
+          Four main types of labels
+        </span>
       </section>
 
       <section>
         <b>Can we do this using regular expressions?</b>
         <span class="caption">
-            First intuition: Regular expressions
-          </span>
+          First intuition: Regular expressions
+        </span>
       </section>
 
       <section>
+        <b style="background-color:red">Not really!</b>
         <ol>
-          <b style="background-color:red">Not really!</b>
           <li>OCR transcriptions are never perfect
             <ul>
               <li>There are mistranscriptions in the parsed text</li>
@@ -218,8 +418,8 @@
           </li>
         </ol>
         <span class="caption">
-            First intuition: Regular expressions
-          </span>
+          First intuition: Regular expressions
+        </span>
       </section>
 
       <section>
@@ -230,132 +430,143 @@
             </ul>
           </li>
           <li class="fragment"><b style="color:#e15718">Binkenburg George<b style="background-color:yellow">,</b> pianomkr<b style="background-color:yellow">.</b> h<b style="background-color:yellow">.</b> 924 Third av<b style="background-color:yellow">.</b></b>
-            </ol>
-            <span class="caption">
-            First intuition: Regular expressions
-          </span>
+          </li>
+        </ul>
+        <span class="caption">
+          First intuition: Regular expressions
+        </span>
       </section>
 
       <section>
         <ul>
-          <li>Unfortunately, we rarely see such clean parses!
-            <li class="fragment">Something like this is much more likely:<br><b style="color:#e15718">BInkenbu rg Geor ge pianomkr. h 924 Th1rd av</b>
-              </ol>
-              <span class="caption">
-            First intuition: Regular expressions
-          </span>
+          <li>Unfortunately, we rarely see such clean parses!</li>
+          <li class="fragment">Something like this is much more likely:
+            <ul>
+              <li><b style="color:#e15718">BInkenbu rg Geor ge pianomkr. h 924 Th1rd av</b></li>
+            </ul>
+          </li>
+        </ul>
+        <span class="caption">
+          First intuition: Regular expressions
+        </span>
       </section>
 
       <section>
         <ul>
           <li>And not only can we not trust the transcriptions 100%...</li>
-          <li>We also can't predict the amount of elements in an entry without inspecting first!</li>
-          <li class="fragment"><b style="color:#e15718">Burtnett Daniel, pres. cit. f. ins. co. 67 Wall & 64 Bowery, h. 14 Perry</b>
-            <li class="fragment"><b style="color:#e15718">Burt Edwin C. boots & shoes, 43 Broadway, h. 327 Henry, Brooklyn</b>
-              </ol>
-              <span class="caption">
-            First intuition: Regular expressions
-          </span>
+          <li>We also can't predict the amount of elements in an entry without inspecting first!
+            <ul>
+              <li class="fragment"><b style="color:#e15718">Burtnett Daniel, pres. cit. f. ins. co. 67 Wall & 64 Bowery, h. 14 Perry</b></li>
+              <li class="fragment"><b style="color:#e15718">Burt Edwin C. boots & shoes, 43 Broadway, h. 327 Henry, Brooklyn</b></li>
+            </ul>
+          </li>
+        </ul>
+        <span class="caption">
+          First intuition: Regular expressions
+        </span>
       </section>
 
       <section>
         <b>Can we do this using regular expressions, <em>plus</em> a ton of conditional statements?</b>
         <span class="caption">
-            Second intuition: A lot of conditionals!
-          </span>
+          Second intuition: A lot of conditionals!
+        </span>
       </section>
 
       <section>
-        <video class="stretch" data-autoplay src="../city-directory-meetup/images/old-code.mp4"></video>
-          <span class="caption">
-              ... and we tried exactly this!
-          </span>
-        </section>
+        <video class="stretch" data-autoplay src="images/old-code.mp4"></video>
+        <span class="caption">
+          ... and we tried exactly this!
+        </span>
+      </section>
 
       <section>
+        <b style="background-color:yellow">Sort of!</b>
         <ol>
-          <b style="background-color:yellow">Sort of!</b>
           <li>The approach is:
             <ul>
-              <li>Since we can't assume that any delimiter is correctly parsed, we'll first just tokenize everything we can</li>
-              <ul>
-                <li class="fragment"><b style="color:#e15718">Bush Anna, widow of Henry J. r. 152 W. 13th</b>
-
+              <li>Since we can't assume that any delimiter is correctly parsed, we'll first just tokenize everything we can
+                <ul>
+                  <li class="fragment"><b style="color:#e15718">Bush Anna, widow of Henry J. r. 152 W. 13th</b></li>
                   <li class="fragment">⇒ ["<b style="color:#e15718">Bush</b>", "<b style="color:#e15718">Anna</b>", "<b style="color:#e15718">,</b>", "<b style="color:#e15718">widow</b>", "<b style="color:#e15718">of</b>", "<b style="color:#e15718">Henry</b>", "<b style="color:#e15718">J</b>",
-                    "
-                    <b style="color:#e15718">.</b>", "<b style="color:#e15718">r</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">152</b>", "<b style="color:#e15718">W</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">13th</b>"]</b>
-              </ul>
+                      "
+                      <b style="color:#e15718">.</b>", "<b style="color:#e15718">r</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">152</b>", "<b style="color:#e15718">W</b>", "<b style="color:#e15718">.</b>", "<b style="color:#e15718">13th</b>"]</b>
+                  </li>
+                </ul>
+              </li>
             </ul>
-            </li>
+          </li>
         </ol>
         <span class="caption">
-            Second intuition: A lot of conditionals!
-          </span>
+          Second intuition: A lot of conditionals!
+        </span>
       </section>
 
       <section>
         <ul>
-          <li>Then, we go through the tokens one by one, and try to figure out what label they belong to
-            <li>We can use heuristic methods for classifying each token
-              <ul style="font-size:75%">
-                <li class="fragment">Does it contain a number? If so, it's probably part of an <b style="background-color:#73ce9f">address</b>.
-                  <li class="fragment">Does it contain a known street name? If so, it's again part of an <b style="background-color:#73ce9f">address</b>.
-                    <li class="fragment">Is it a known occupation? If so, it must be an <b style="background-color:#91c8f7">occupation</b> name.
-                      <li class="fragment">...</li>
-              </ul>
-              </li>
+          <li>Then, we go through the tokens one by one, and try to figure out what label they belong to</li>
+          <li>We can use heuristic methods for classifying each token
+            <ul style="font-size:75%">
+              <li class="fragment">Does it contain a number? If so, it's probably part of an <b style="background-color:#73ce9f">address</b>.</li>
+              <li class="fragment">Does it contain a known street name? If so, it's again part of an <b style="background-color:#73ce9f">address</b>.</li>
+              <li class="fragment">Is it a known occupation? If so, it must be an <b style="background-color:#91c8f7">occupation</b> name.</li>
+              <li class="fragment">...</li>
+            </ul>
+          </li>
         </ul>
         <span class="caption">
-            Second intuition: A lot of conditionals!
-          </span>
+          Second intuition: A lot of conditionals!
+        </span>
       </section>
 
       <section>
         <ul>
-          <li>This turns out to be a somewhat promising approach, but it is very tedious to engineer...
-            <li class="fragment">Our accuracy is contingent on our ability to correctly:
-              <ol>
-                <li class="fragment">Think of all of the relevant heuristic methods
-                  <li class="fragment">Interpret and weigh the results of the heuristics correctly
-              </ol>
+          <li>This turns out to be a somewhat promising approach, but it is very tedious to engineer...</li>
+          <li class="fragment">Our accuracy is contingent on our ability to correctly:
+            <ol>
+              <li class="fragment">Think of all of the relevant heuristic methods</li>
+              <li class="fragment">Interpret and weigh the results of the heuristics correctly</li>
+            </ol>
+          </li>
         </ul>
         <span class="caption">
-            Second intuition: A lot of conditionals!
-          </span>
+          Second intuition: a lot of conditionals!
+        </span>
       </section>
 
       <section>
         <b>Can algorithms from machine learning do this better?</b>
         <span class="caption">
-            Third intuition: Conditional random fields (CRF)
-          </span>
+          Third intuition: Conditional random fields (CRF)
+        </span>
       </section>
 
       <section>
+        <b style="background-color:#1baf1b">YES! 100% YES!</b>
         <ol>
-          <b style="background-color:#1baf1b">YES! 100% YES!</b>
           <li>We use a supervised-learning algorithm called "conditional random fields" (CRF)
             <ul>
-              <li class="fragment">Instead of trying to pre-empt what factors are important in labeling, and then interpret the results, we demonstrate by way of labeled examples, and let CRF infer what is important
-              </ul>
-              <li class="fragment"><a href="https://open.blogs.nytimes.com/2015/04/09/extracting-structured-data-from-recipes-using-conditional-random-fields/?_r=0">Excellent blog post from NYTimes Developers on CRF</a>
+              <li class="fragment">Instead of trying to pre-empt what factors are important in labeling, and then interpret the results, we demonstrate by way of labeled examples, and let CRF infer what is important</li>
+            </ul>
+          </li>
+          <li class="fragment"><a href="https://open.blogs.nytimes.com/2015/04/09/extracting-structured-data-from-recipes-using-conditional-random-fields/?_r=0">Excellent blog post from NYTimes Developers on CRF</a></li>
         </ol>
         <span class="caption">
-            Third intuition: Conditional random fields (CRF)
-          </span>
+          Third intuition: Conditional random fields (CRF)
+        </span>
       </section>
 
       <section>
         <ul>
-          <li>First we create training examples, at the same individual-token level as before:
+          <li>First we create training examples, at the same individual-token level as before:</li>
         </ul>
-        <img class="stretch" src="../city-directory-meetup/images/training-ex-2.png" />
+        <img class="stretch" src="images/training-ex-2.png" />
         <ul>
-          <li>Each token is labeled in terms of what tag it is part of
+          <li>Each token is labeled in terms of what tag it is part of</li>
         </ul>
         <span class="caption">
-            CRF training data
-          </span>
+          CRF training data
+        </span>
       </section>
 
       <section>
@@ -400,152 +611,163 @@
             <td><b>AC</b></td>
             <td>"718", "Washington"</td>
           </tr>
-
         </table>
         <span class="caption">
-            CRF labels
-          </span>
+          CRF labels
+        </span>
       </section>
 
       <section>
         <ul>
-          <li>This sequence of labels accompanying the tokens is used for training, and also is the form that CRF predictions will take
-            <li class="fragment">Given a sequence of labels, we can then easily parse the record into discrete elements
-              <ul>
-                <li class="fragment"><b>START NC NC D OC OC D PA AC AC PA AC AC END</b>
-                  <li class="fragment"><b><del>START</del></b> <b style="background-color:#f192a6">NC NC</b> <del>D</del> <b style="background-color:#91c8f7">OC OC</b> <del>D</del> <b style="background-color:#fffab2">PA</b> <b style="background-color:#73ce9f">AC AC</b> <b style="background-color:#fffab2">PA</b> <b style="background-color:#73ce9f">AC AC</b> <b><del>END</del></b>
-                    <li class="fragment"><b style="background-color:#f192a6">name</b> <b style="background-color:#91c8f7">occupation</b> <b style="background-color:#73ce9f">address 1</b>, <b style="background-color:#73ce9f">address 2</b></ul>
-
+          <li>This sequence of labels accompanying the tokens is used for training, and also is the form that CRF predictions will take</li>
+          <li class="fragment">Given a sequence of labels, we can then easily parse the record into discrete elements
+            <ul>
+              <li class="fragment"><b>START NC NC D OC OC D PA AC AC PA AC AC END</b></li>
+              <li class="fragment"><b><del>START</del></b> <b style="background-color:#f192a6">NC NC</b> <del>D</del> <b style="background-color:#91c8f7">OC OC</b> <del>D</del> <b style="background-color:#fffab2">PA</b> <b style="background-color:#73ce9f">AC AC</b> <b style="background-color:#fffab2">PA</b> <b style="background-color:#73ce9f">AC AC</b> <b><del>END</del></b></li>
+              <li class="fragment"><b style="background-color:#f192a6">name</b> <b style="background-color:#91c8f7">occupation</b> <b style="background-color:#73ce9f">address 1</b>, <b style="background-color:#73ce9f">address 2</b></li>
+            </ul>
+          </li>
         </ul>
         <span class="caption">
-            CRF label decoding
-          </span>
+          CRF label decoding
+        </span>
       </section>
 
       <section>
         <ul>
           <li>Conditional random fields uses a discriminative classifier to produce the sequence of labels which maximizes: <br><b style="font-size:100%;background-color:#ff8787">P( word-label | word-features)</b></li>
-          <li>Features encode information relevant to a word's label in a way that is sensitive to the word itself, as well as that word's location in a sequence
+          <li>Features encode information relevant to a word's label in a way that is sensitive to the word itself, as well as that word's location in a sequence</li>
         </ul>
         <span class="caption">
-            CRF parameter learning
-          </span>
+          CRF parameter learning
+        </span>
       </section>
 
       <section>
         <ul>
-            <li>Features are usually boolean (true/false) attributes that are computed for each token
-              <ul>
-                <li>In CRF, features describe not only the "present" token, but can also look at adjacent tokens</ul>
-                  <li>We have to create features similar to the heuristic functions we used earlier
+          <li>Features are usually boolean (true/false) attributes that are computed for each token
+            <ul>
+              <li>In CRF, features describe not only the "present" token, but can also look at adjacent tokens</li>
+            </ul>
+          </li>
+          <li>We have to create features similar to the heuristic functions we used earlier</li>
         </ul>
         <span class="caption">
-            CRF feature engineering
-          </span>
+          CRF feature engineering
+        </span>
       </section>
 
       <section>
         <ul>
-            <li>During training time, the algorithm will proceed through the examples, and find the optimal <b>feature weights</b> that maximize the probability of getting the correct label
-              <ul><li style="font-size:75%" class="fragment">(... this particular task is "convex", meaning there is only one optimum, so we can find it easily)</li></ul>
-                <li class="fragment">This process is done iteratively, often using a training algorithm called <b>stochastic gradient descent</b>
-                  <ul><li style="font-size:75%" class="fragment">(... but luckily for us, we use a library that abstracts this away!)</li>
+          <li>During training time, the algorithm will proceed through the examples, and find the optimal <b>feature weights</b> that maximize the probability of getting the correct label
+            <ul>
+              <li style="font-size:75%" class="fragment">(... this particular task is "convex", meaning there is only one optimum, so we can find it easily)</li>
+            </ul>
+          </li>
+          <li class="fragment">This process is done iteratively, often using a training algorithm called <b>stochastic gradient descent</b>
+            <ul>
+              <li style="font-size:75%" class="fragment">(... but luckily for us, we use a library that abstracts this away!)</li>
+            </ul>
+          </li>
         </ul>
         <span class="caption">
-            CRF training
-          </span>
+          CRF training
+        </span>
       </section>
 
       <section>
         <ul>
           <li>Assume that the input we are trying to classify is:
             <ul>
-              <li><b style="color:#e15718">Bush Chauncey, commissioner, 157 B'way, h. Rathbun's hotel</b>
+              <li><b style="color:#e15718">Bush Chauncey, commissioner, 157 B'way, h. Rathbun's hotel</b></li>
             </ul>
+          </li>
         </ul>
         <span class="caption">
-            CRF features
-          </span>
+          CRF features
+        </span>
       </section>
 
       <section>
         <ul>
-          <li>First we'll go through the input, one token at a time, and featurize
+          <li>First we'll go through the input, one token at a time, and featurize</li>
         </ul>
         <span class="caption">
-            CRF features
-          </span>
+          CRF features
+        </span>
       </section>
 
       <section>
         <ul>
           <li><b style="color:#e15718"><b style="background-color:yellow">Bush</b> Chauncey, commissioner, 157 B'way, h. Rathbun's hotel</b>
             <ul style="font-size:75%">
-              <li>current_word-is_start_of_sentence: <b style="color:green">TRUE</b>
-                <li>current_word-is_end_of_sentence: <b style="color:red">FALSE</b>
-                  <li>current_word-contains_a_number: <b style="color:red">FALSE</b>
-                    <li>current_word-character_capitalized: <b style="color:green">TRUE</b>
-                      <li>...
-                        <li>next_word-is_start_of_sentence: <b style="color:red">FALSE</b>
-                          <li>...
-                            <li>previous_word-is_start_of_sentence: <b style="color:purple">NULL</b>
-                              <li>...
+              <li>current_word-is_start_of_sentence: <b style="color:green">TRUE</b></li>
+              <li>current_word-is_end_of_sentence: <b style="color:red">FALSE</b></li>
+              <li>current_word-contains_a_number: <b style="color:red">FALSE</b></li>
+              <li>current_word-character_capitalized: <b style="color:green">TRUE</b></li>
+              <li>...</li>
+              <li>next_word-is_start_of_sentence: <b style="color:red">FALSE</b></li>
+              <li>...</li>
+              <li>previous_word-is_start_of_sentence: <b style="color:purple">NULL</b></li>
+              <li>...</li>
             </ul>
-
+          </li>
         </ul>
         <span class="caption">
-            CRF feature example, iteration 1
-          </span>
+          CRF feature example, iteration 1
+        </span>
       </section>
 
       <section>
         <ul>
           <li><b style="color:#e15718">Bush <b style="background-color:yellow">Chauncey</b>, commissioner, 157 B'way, h. Rathbun's hotel</b>
             <ul style="font-size:75%">
-              <li>current_word-is_start_of_sentence: <b style="color:red">FALSE</b>
-                <li>current_word-is_end_of_sentence: <b style="color:red">FALSE</b>
-                  <li>current_word-contains_a_number: <b style="color:red">FALSE</b>
-                    <li>current_word-character_capitalized: <b style="color:green">TRUE</b>
-                      <li>...
-                        <li>next_word-is_start_of_sentence: <b style="color:red">FALSE</b>
-                          <li>...
-                            <li>previous_word-is_start_of_sentence: <b style="color:green">TRUE</b>
-                              <li>...
+              <li>current_word-is_start_of_sentence: <b style="color:red">FALSE</b></li>
+              <li>current_word-is_end_of_sentence: <b style="color:red">FALSE</b></li>
+              <li>current_word-contains_a_number: <b style="color:red">FALSE</b></li>
+              <li>current_word-character_capitalized: <b style="color:green">TRUE</b></li>
+              <li>...</li>
+              <li>next_word-is_start_of_sentence: <b style="color:red">FALSE</b></li>
+              <li>...</li>
+              <li>previous_word-is_start_of_sentence: <b style="color:green">TRUE</b></li>
+              <li>...</li>
             </ul>
-
+          </li>
         </ul>
         <span class="caption">
-            CRF feature example, iteration 2
-          </span>
+          CRF feature example, iteration 2
+        </span>
       </section>
 
       <section>
         <ul>
-          <li>We have a lot of freedom in designing what features to extract
-          <li>Features can represent many aspects of the input
+          <li>We have a lot of freedom in designing what features to extract</li>
+          <li>Features can represent many aspects of the input</li>
             <ul>
-              <li class="fragment">Word shape
-                <li class="fragment">Suffixes and prefixes
-                  <li class="fragment">Types of characters in the input
-                    <li class="fragment">Whether or not the input is a known entity
+              <li class="fragment">Word shape</li>
+              <li class="fragment">Suffixes and prefixes</li>
+              <li class="fragment">Types of characters in the input</li>
+              <li class="fragment">Whether or not the input is a known entity</li>
             </ul>
+          </li>
         </ul>
         <span class="caption">
-            CRF feature engineering
-          </span>
+          CRF feature engineering
+        </span>
       </section>
 
       <section>
         <ul>
           <li>We used Python's <b>sklearn-crfsuite</b> package
             <ul>
-              <li>It conforms to the popular <b>scikit-learn</b> package API
-                <li>It's in Python, so it's straightforward to write custom feature extractors
+              <li>It conforms to the popular <b>scikit-learn</b> package API</li>
+              <li>It's in Python, so it's straightforward to write custom feature extractors</li>
             </ul>
+          </li>
         </ul>
         <span class="caption">
-            CRF implementation
-          </span>
+          CRF implementation
+        </span>
       </section>
 
       <section>
@@ -554,13 +776,17 @@
             <ul>
               <li class="fragment">We just have to create features that are sensitive to differences of tokens
                 <ul>
-                  <li class="fragment">But, we don't actually have to determine if those differences are useful or not!</ul>
+                  <li class="fragment">But, we don't actually have to determine if those differences are useful or not!</li>
+                </ul>
                 <li class="fragment">CRF infers from training examples (by perceiving in terms of feature vectors) what the most important factors in predicting labels are
+                </li>
+              </li>
             </ul>
+          </li>
         </ul>
         <span class="caption">
-            CRF implementation
-          </span>
+          CRF implementation
+        </span>
       </section>
 
       <section>
@@ -569,53 +795,447 @@
             <ul>
               <li class="fragment">Super good! Really, really good.
                 <ul>
-                  <li class="fragment">But we don't really have many stats to back that claim up</ul>
-                <li class="fragment">Since the majority of our input is unlabeled, it's hard to evaluate against it directly
-
+                  <li class="fragment">But we don't really have many stats to back that claim up</li>
+                </ul>
+                <li class="fragment">Since the majority of our input is unlabeled, it's hard to evaluate against it directly</li>
+              </li>
             </ul>
+          </li>
         </ul>
         <span class="caption">
-            CRF accuracy
-          </span>
+          CRF accuracy
+        </span>
       </section>
 
-      <section data-background="../city-directory-meetup/images/sample-labels.png">
-
+      <section data-background="images/sample-labels.png">
         <span class="caption">
-            CRF label sample
-          </span>
+          CRF label sample
+        </span>
       </section>
 
       <section>
           <ul>
-            <li>You can find our city directory CRF module, as well as our training data, <a href="https://github.com/nypl-spacetime/city-directory-entry-parser/">on Github</a>
+            <li>You can find our city directory CRF module, as well as our training data, <a href="https://github.com/nypl-spacetime/city-directory-entry-parser/">on Github</a></li>
             <li class="fragment">We're currently using only about 70 hand-labeled training examples, and this seems to work very well</li>
-            <ul class="fragment"><li>Additional tweaks are mostly around edge-cases and infrequent types of statements</li></ul>
+            <li class="fragment">Additional tweaks are mostly around edge-cases and infrequent types of statements</li>
           </ul>
           <span class="caption">
-              Implementation details
+            Implementation details
           </span>
         </section>
 
       <section>
-        <video class="stretch" data-autoplay src="../city-directory-meetup/images/training-data.mp4"></video>
-          <span class="caption">
-              Assembling training data in a spreadsheet
-          </span>
-        </section>
+        <video class="stretch" data-autoplay src="images/training-data.mp4"></video>
+        <span class="caption">
+          Assembling training data in a spreadsheet
+        </span>
+      </section>
 
       <section>
-        <video class="stretch" data-autoplay src="../city-directory-meetup/images/python-library.mp4"></video>
-          <span class="caption">
-              Example in Python
-          </span>
-        </section>
+        <video class="stretch" data-autoplay src="images/python-library.mp4"></video>
+        <span class="caption">
+          Example in Python
+        </span>
+      </section>
 
+      <!--
+      ==========================================================================================
+          Bert (2/2):
+      ==========================================================================================
+      -->
 
-      <!-- End SGB slides. -->
+      <section data-background="images/83c65380-5293-0134-830a-00505686a51c.jpg">
+        <span class="caption">
+          <a href="https://digitalcollections.nypl.org/items/83c65380-5293-0134-830a-00505686a51c">
+            John Canvin, pilot, 309 Water, h. 23 Hamilton
+          </a>
+        </span>
+      </section>
 
+      <section>
+<pre><code data-trim data-noescape class="language-js">
+{
+  "pageNum": 80,
+  "bbox": [62, 473, 756, 505],
+  "text": "Canvin John, pilot, 309 Water, h. 23 Hamilton",
+  "parsed": {
+    "subjects": ["Canvin John"],
+    "occupations": ["pilot"],
+    "addresses":[
+      ["309 Water"],
+      ["23 Hamilton","h"]
+    ]
+  }
+}
+</code></pre>
+        <span class="caption">
+          A city directory entry as structured data
+        </span>
+      </section>
 
-      <!-- For example slides, see https://github.com/bertspaan/nacis-2017/blob/master/index.html -->
+      <section>
+        <video class="stretch" data-autoplay src="images/23-hamilton-street.mp4"></video>
+        <span class="caption">
+          Finding 23 Hamilton Street...
+        </span>
+      </section>
+
+      <section>
+        <p>Hamilton Street no longer exists...</p>
+      </section>
+
+      <section data-background="images/510d47e0-bf40-a3d9-e040-e00a18064a99.jpg">
+        <span class="caption">
+          <a href="https://digitalcollections.nypl.org/items/510d47e0-bf40-a3d9-e040-e00a18064a99">
+            William Perris, Maps of the city of New York (1857)
+          </a>
+        </span>
+      </section>
+
+      <section data-background="images/knickerbocker-village.jpg">
+        <span class="caption">
+          <a href="https://www.google.nl/maps/@40.7092425,-73.9979319,190a,35y,45.84h,56.82t/data=!3m1!1e3">
+            Knickerbocker Village, in Google Earth
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <p>We need a database of historical addresses!</p>
+        <p class="fragment"><mark><strong>Let's use NYPL's digitized maps!</strong></mark></p>
+      </section>
+
+      <section data-background="images/510d47e2-548f-a3d9-e040-e00a18064a99.jpg">
+        <span class="caption">
+          <a href="https://digitalcollections.nypl.org/items/510d47e2-548f-a3d9-e040-e00a18064a99">
+            Detail of Plate 3, Atlas of the Bronx (1921)
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <img src="images/mapwarper-9464-rectify.png" />
+        <span class="caption">
+          <a href="http://maps.nypl.org/warper/maps/9464#Rectify_tab">
+            Map Warper, our website for crowdsourced map georectification
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <img src="images/mapwarper-9464-crop.png" />
+        <span class="caption">
+          <a href="http://maps.nypl.org/warper/maps/9464#Crop_tab">
+            Cropping the image, keeping only cartographic material
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <img src="images/mapwarper-9464-preview.png" />
+        <span class="caption">
+          <a href="http://maps.nypl.org/warper/maps/9464#Preview_tab">
+            Showing the rectified map on top of New York City today
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <img src="images/mapwarper-layer-883.png" />
+        <span class="caption">
+          <a href="http://maps.nypl.org/warper/layers/883">
+            Stitching all pages from the atlas together
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/building-inspector.png"></video>
+        <span class="caption">
+          <a href="http://buildinginspector.nypl.org/">Building Inspector: from maps to historical building and address data</a>
+        </span>
+      </section>
+
+      <section>
+        <video class="stretch" data-autoplay src="images/building-inspector.mp4"></video>
+        <span class="caption">
+          <a href="http://buildinginspector.nypl.org/">Crowdsourced transcription of house numbers with Building Inspector</a>
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/building-inspector-api.png"></video>
+        <span class="caption">
+          <a href="http://buildinginspector.nypl.org/">
+            All Building Inspector data is available via an API
+          </a>
+        </span>
+      </section>
+
+      <section data-background="images/building-inspector-addresses.png">
+        <span class="caption">
+          Our dataset of historical house numbers
+        </span>
+      </section>
+
+      <section data-background="images/tracing-qgis.gif">
+        <span class="caption">
+          A database of historical streets, traced from maps &amp; atlases
+        </span>
+      </section>
+
+      <section data-background-iframe="http://mgiraldo.github.io/centerlines">
+        <span class="caption">
+          <a href="http://mgiraldo.github.io/centerlines">Tracing all streets from a 1854 atlas of Manhattan</a>
+        </span>
+      </section>
+
+      <section data-background="images/nyc-streets.png">
+        <span class="caption">
+          <a href="https://github.com/nypl-spacetime/qgis-trace-tutorial">
+          Our dataset of historical streets (you can help us trace!)
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/spacetime-etl.svg" />
+        <span class="caption">
+          Extract data from different sources, convert to NDJSON
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/spacetime-data.png" />
+        <span class="caption">
+          <a href="http://spacetime.nypl.org/#data">Open historical datasets on spacetime.nypl.org</a>
+        </span>
+      </section>
+
+      <section>
+        <img src="images/qgis.gif" />
+        <span class="caption">
+          Datasets from the NYC Space/Time Directory visualized with QGIS
+        </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>861 streets</li>
+          <li>74,635 house numbers</li>
+        </ul>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/inference.svg" />
+        <span class="caption">
+          New insights from combining historical datasets
+        </span>
+      </section>
+
+      <section data-background="images/west-village.jpg">
+        <span class="caption">
+          <a href="http://bertspaan.nl/west-village">
+            house numbers + streets = addresses
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <ul>
+          <li>861 streets</li>
+          <li>74,635 house numbers</li>
+          <li><strong>48,754 addresses</strong></li>
+        </ul>
+      </section>
+
+      <section>
+        <video class="stretch" loop data-autoplay src="images/historical-addresses.mp4"></video>
+        <span class="caption">
+          <a href="https://github.com/nypl-spacetime/tutorial-historical-addresses">
+            A simple geocoder for historical addresses, made with Lunr
+          </a>
+        </span>
+      </section>
+
+      <section data-background="images/510d47d9-4f8c-a3d9-e040-e00a18064a99.jpg">
+        <span class="caption">
+          <a href="https://digitalcollections.nypl.org/items/510d47d9-4f8c-a3d9-e040-e00a18064a99">
+            Talman Street, no. 57, Brooklyn
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <table>
+          <tr><td>Fifth</td> <td>⟶</td> <td>Fifth Avenue</td></tr>
+          <tr><td>Rivington</td><td>⟶</td><td>Rivington Street</td></tr>
+          <tr><td>Av B</td><td>⟶</td><td>Avenue B</td></tr>
+          <tr><td>W. 17th</td><td>⟶</td><td>West 17th Street</td></tr>
+          <tr><td>B'way</td><td>⟶</td><td>Broadway</td></li>
+          <tr><td>Grace Ct.</td><td>⟶</td><td>Grace Court</td></tr>
+          <tr><td>Thirty-First</td><td>⟶</td><td>31st Street</td></tr>
+          <tr><td>B'ry</td><td>⟶</td><td>Bowery</td></tr>
+        </table>
+        <span class="caption">
+          <a href="https://github.com/nypl-spacetime/nyc-street-normalizer">
+            Street names from city directories need to be normalized
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/nyc-street-normalizer.png" />
+        <span class="caption">
+          <a href="https://github.com/nypl-spacetime/nyc-street-normalizer">
+            Node.js library to normalize NYC street names
+          </a>
+        </span>
+      </section>
+
+      <section>
+<pre><code data-trim data-noescape class="language-js">
+const normalizer = require('@spacetime/nyc-street-normalizer')
+
+const input = [
+  "13th avenue", "Vernon Blvd", "E. 35th", "Macdougal",
+  "Shore Rd", "B'way", "E. Twenty-Second St",
+]
+
+input.forEach((street) => console.log(street, '⟶', normalizer(street)))
+//  13th avenue ⟶ Thirteenth Avenue
+//  Vernon Blvd ⟶ Vernon Boulevard
+//  E. 35th ⟶ East 35th Street
+//  Macdougal ⟶ MacDougal Street
+//  Shore Rd ⟶ Shore Road
+//  B'way ⟶ Broadway
+//  E. Twenty-Second St ⟶ East 22nd Street
+</code></pre>
+        <span class="caption">
+          <a href="https://github.com/nypl-spacetime/nyc-street-normalizer">
+            Example code, showing street name normalization
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <p>Normalized address from city directory:</p>
+<pre><code data-trim data-noescape class="language-js">
+{
+  "pageNum": 80,
+  "bbox": [62, 473, 756, 505],
+  "text": "Canvin John, pilot, 309 Water, h. 23 Hamilton",
+  "normalizedAddress": "23 Hamilton Street"
+}
+</code></pre>
+        <p>Historical address, with coordinates:</p>
+<pre><code data-trim data-noescape class="language-js">
+{
+  "name": "23 Hamilton Street",
+  "data": {
+    "mapId":7138,
+    "borough":"Manhattan"
+  },
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-73.9955835, 40.7110962]
+  }
+}
+</code></pre>
+        <span class="caption">
+          Match normalized addresses from two datasets
+        </span>
+      </section>
+
+       <section>
+        <ul>
+          <li>861 streets</li>
+          <li>74,635 house numbers</li>
+          <li>48,754 addresses</li>
+          <li>3,133,624 city directory entries (28 volumes)</li>
+          <li><strong>967,482 geocoded entries</strong></li>
+        </ul>
+      </section>
+
+      <section data-background="images/geocoded-city-directories.png">
+        <span class="caption">
+          967,482 geocoded city directory entries
+        </span>
+      </section>
+
+      <section data-background-video="images/lower-east-side-1854.mp4" data-background-video-loop="true">
+        <span class="caption">
+          <a href="http://spacetime.nypl.org/lower-east-side-1854/">
+            City directories, geocoded with historical address data
+          </a>
+        </span>
+      </section>
+
+      <section>
+        <img src="images/chart-occupations.png" />
+        <!-- <iframe width="800" height="700" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQqiTn7fttoVHMSmFyXrDGQf1sJoymN7DzwSQiojZL3-CS2eEPRbAYTEF-Xf_HmKih4FzVxp1Nr23h8/pubchart?oid=1645588346&format=interactive"></iframe> -->
+        <span class="caption">
+          Occupations, counted
+        </span>
+      </section>
+
+      <section>
+        <p>What's next?</p>
+      </section>
+
+      <section data-background="images/40a6a2f0-474d-0132-a8bc-58d385a7bbd0.jpg">
+        <span class="caption">
+          <a href="https://digitalcollections.nypl.org/items/40a6a2f0-474d-0132-a8bc-58d385a7bbd0">
+            Auto-digest register and trade weekly (1918)
+          </a>
+        </span>
+      </section>
+
+      <section data-background="images/510d47dd-13bc-a3d9-e040-e00a18064a99.jpg">
+        <span class="caption">
+          <a href="https://digitalcollections.nypl.org/items/510d47dd-13bc-a3d9-e040-e00a18064a99">
+            Manhattan: 86th Street - Amsterdam Avenue (1918)
+          </a>
+        </span>
+      </section>
+
+      <section data-transition="slide" data-transition-speed="slow">
+        <img class="stretch" src="images/locomobile.png" />
+        <img class="fragment fade-up" src="images/locomobile-price.png" />
+        <span class="caption">
+          <a href="https://digitalcollections.nypl.org/items/510d47de-09dd-a3d9-e040-e00a18064a99">Locomobile “30” (1909)</a>
+        </span>
+      </section>
+
+      <section>
+        <img class="stretch" src="images/510d47de-09da-a3d9-e040-e00a18064a99.png" />
+        <span class="caption">
+          <a href="https://digitalcollections.nypl.org/items/510d47de-09da-a3d9-e040-e00a18064a99">The Locomobile Book (1909)</a>
+        </span>
+      </section>
+
+      <section>
+        <p>What's next?</p>
+        <p><mark>Making all this data searchable and visible!</mark></p>
+      </section>
+
+      <section>
+        <video class="stretch" data-autoplay src="images/atlas.mp4"></video>
+        <span class="caption">
+          Atlas: a new UI to search &amp; visualize all NYC Space/Time Directory data
+        </span>
+      </section>
+
+      <section class="block-text" data-background="PLAATJE.jpg">
+        <h2><span class="block">Thanks!</span></h2>
+        <p>
+          All the data will soon be available on <a href="http://spacetime.nypl.org">spacetime.nypl.org</a>
+        </p>
+        <p>Slides:</p>
+        <p>
+          <a href="http://spacetime.nypl.org/city-directories-meetup">spacetime.nypl.org/city-directories-meetup</a>
+        </p>
+      </section>
 
     </div>
   </div>
