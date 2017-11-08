@@ -33,14 +33,31 @@
 						Extracting labeled fields from directory entries
 					</span>
       </section>
-
+<!--
+      <section>
+        <ul>
+          <li><b>Input:</b></li>
+          <ul>
+            <li><em>"George Binkenburg, pianomkr. h. 924 Third av."</em></li>
+          </ul>
+          <li><b>Output:</b></li>
+          <ul>
+            <li>name: <em>"George Binkenburg"</em></li>
+            <li>occupation: <em>"pianomkr."</em></li>
+            <li>home-address: <em> "924 Third av."</em></li>
+          </ul>
+        </ul>
+          <span class="caption">
+              Background
+            </span>
+      </section>
+-->
       <section data-background="#000">
         <ul>
-          <li class="fragment">Be able to recognize different types of data within an entry</li>
-          <li class="fragment">Extract structured knowledge about each individual...</li>
+          <li>How do we extract structured knowledge from a directory entry?</li>
           </ol>
           <span class="caption">
-              Motivation
+              Problem
             </span>
       </section>
 
@@ -166,6 +183,13 @@
       </section>
 
       <section>
+        <video class="stretch" data-autoplay src="../city-directory-meetup/images/old-code.mp4"></video>
+          <span class="caption">
+              ... and we tried exactly this!
+          </span>
+        </section>
+
+      <section>
         <ol>
           <b style="background-color:yellow">Sort of!</b>
           <li>The approach is:
@@ -206,10 +230,10 @@
       <section>
         <ul>
           <li>This turns out to be a somewhat promising approach, but it is very tedious to engineer...
-            <li>Our accuracy is contingent on our ability to correctly:
+            <li class="fragment">Our accuracy is contingent on our ability to correctly:
               <ol>
-                <li>Think of all of the relevant heuristic methods
-                  <li>Interpret and weigh the results of the heuristics correctly
+                <li class="fragment">Think of all of the relevant heuristic methods
+                  <li class="fragment">Interpret and weigh the results of the heuristics correctly
               </ol>
         </ul>
         <span class="caption">
@@ -230,8 +254,8 @@
           <li>We use a supervised-learning algorithm called "conditional random fields" (CRF)
             <ul>
               <li class="fragment">Instead of trying to pre-empt what factors are important in labeling, and then interpret the results, we demonstrate by way of labeled examples, and let CRF infer what is important
-                <ul>
-              </li>
+              </ul>
+              <li class="fragment"><a href="https://open.blogs.nytimes.com/2015/04/09/extracting-structured-data-from-recipes-using-conditional-random-fields/?_r=0">Excellent blog post from NYTimes Developers on CRF</a>
         </ol>
         <span class="caption">
             Third intuition: Conditional random fields (CRF)
@@ -363,7 +387,7 @@
 
       <section>
         <ul>
-          <li>First we'll go through the input, one token at a time, and featurize those tokens
+          <li>First we'll go through the input, one token at a time, and featurize
         </ul>
         <span class="caption">
             CRF features
@@ -445,10 +469,10 @@
         <ul>
           <li><b>What does CRF allow us to do?</b>
             <ul>
-              <li>We just have to create features that are sensitive to differences of tokens
+              <li class="fragment">We just have to create features that are sensitive to differences of tokens
                 <ul>
-                  <li>But, we don't actually have to determine if those differences are useful or not!</ul>
-                <li>CRF infers from training examples, by perceiving in terms of featurized-tokens, what the most important factors in predicting labels are
+                  <li class="fragment">But, we don't actually have to determine if those differences are useful or not!</ul>
+                <li class="fragment">CRF infers from training examples (by perceiving in terms of feature vectors) what the most important factors in predicting labels are
             </ul>
         </ul>
         <span class="caption">
@@ -460,27 +484,45 @@
         <ul>
           <li><b>How good is CRF?</b>
             <ul>
-              <li>Super good! Really, really good.
+              <li class="fragment">Super good! Really, really good.
                 <ul>
-                  <li>But we don't really have many stats to back that claim up.</ul>
-                <li>Since the majority of our input is unlabeled, it's hard to evaluate against it.
+                  <li class="fragment">But we don't really have many stats to back that claim up</ul>
+                <li class="fragment">Since the majority of our input is unlabeled, it's hard to evaluate against it directly
 
             </ul>
         </ul>
         <span class="caption">
-            CRF: accuracy
+            CRF accuracy
+          </span>
+      </section>
+
+      <section data-background="../city-directory-meetup/images/sample-labels.png">
+
+        <span class="caption">
+            CRF label sample
           </span>
       </section>
 
       <section>
-        <video autoplay src="../city-directory-meetup/images/training-data.mp4" height="800px">
+          <ul>
+            <li>You can find our city directory CRF module, as well as our training data, <a href="https://github.com/nypl-spacetime/city-directory-entry-parser/">on Github</a>
+            <li class="fragment">We're currently using only about 70 hand-labeled training examples, and this seems to work very well</li>
+            <ul class="fragment"><li>Additional tweaks are mostly around edge-cases and infrequent types of statements</li></ul>
+          </ul>
+          <span class="caption">
+              Implementation details
+          </span>
+        </section>
+
+      <section>
+        <video class="stretch" data-autoplay src="../city-directory-meetup/images/training-data.mp4"></video>
           <span class="caption">
               Assembling training data in a spreadsheet
           </span>
         </section>
 
       <section>
-        <video autoplay src="../city-directory-meetup/images/python-library.mp4">
+        <video class="stretch" data-autoplay src="../city-directory-meetup/images/python-library.mp4"></video>
           <span class="caption">
               Example in Python
           </span>
