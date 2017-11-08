@@ -339,12 +339,13 @@
 
       <section>
         <ul>
-            <li>During inference time, the algorithm will proceed through the examples, and find the <b>feature weights</b> that maximize the probability of getting the correct label
-                <li>This process is done iteratively, often using a training algorithm called <b>stochastic gradient descent</b>
-                  <ul><li style="font-size:75%">(... but luckily for us, we use a library that abstracts this away!)</li>
+            <li>During training time, the algorithm will proceed through the examples, and find the optimal <b>feature weights</b> that maximize the probability of getting the correct label
+              <ul><li style="font-size:75%" class="fragment">(... this particular task is "convex", meaning there is only one optimum, so we can find it easily)</li></ul>
+                <li class="fragment">This process is done iteratively, often using a training algorithm called <b>stochastic gradient descent</b>
+                  <ul><li style="font-size:75%" class="fragment">(... but luckily for us, we use a library that abstracts this away!)</li>
         </ul>
         <span class="caption">
-            CRF inference
+            CRF training
           </span>
       </section>
 
@@ -470,6 +471,20 @@
             CRF: accuracy
           </span>
       </section>
+
+      <section>
+        <video autoplay src="../city-directory-meetup/images/training-data.mp4" height="800px">
+          <span class="caption">
+              Assembling training data in a spreadsheet
+          </span>
+        </section>
+
+      <section>
+        <video autoplay src="../city-directory-meetup/images/python-library.mp4">
+          <span class="caption">
+              Example in Python
+          </span>
+        </section>
 
 
       <!-- End SGB slides. -->
